@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 from logging.handlers import RotatingFileHandler
 
@@ -20,11 +21,12 @@ def setup_logger(name='supervision_app', log_file='logs/supervision.log', level=
     logger.addHandler(stdout_handler)
 
     try:
+        os.makedirs(os.path.dirname(log_file), exist_ok=True)
         file_handler = RotatingFileHandler(log_file, maxBytes=5 * 1024 * 1024, backupCount=3)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
     except OSError:
-        logger.warning(f'Could not create log file at {log_file}, logging to stdout only.')
+        logger.warning('Impossible de créer le fichier log %s — stdout uniquement.', log_file)
 
     return logger
 

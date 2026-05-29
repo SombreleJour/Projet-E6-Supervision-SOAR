@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timezone
 
 from flask import Blueprint, render_template, redirect, url_for, request, flash
@@ -150,24 +151,24 @@ def change_status(id):
 @role_required('admin', 'analyst')
 def trigger_soar(id):
     incident = db.get_or_404(Incident, id)
+    action = request.form.get('action', 'isolate')
 
     if not incident.asset_id:
-        flash('Aucun asset lié — isolation impossible.', 'warning')
+        flash('Aucun asset lié — action impossible.', 'warning')
         return redirect(url_for('incidents.incident_detail', id=id))
 
-    result = soar_service.process_wazuh_alert({
-        'external_id': incident.external_id or f'manual-{incident.id}',
-        'title': incident.title,
-        'description': incident.description or '',
-        'source': str(incident.asset.ip_address) if incident.asset else '',
-        'criticality': incident.criticality,
-        'category': incident.category,
-        'rule_id': 'manual',
-    })
+    target_ip = str(incident.asset.ip_address)
 
-    if result.get('triggered_soar'):
-        flash('Action SOAR déclenchée.', 'success')
+    if action == 'block_ip':
+        from ..playbooks.block_ip import block_ip
+        success = block_ip(target_ip, incident.id)
+        flash('Blocage IP effectué.' if success else 'Blocage IP échoué.', 'success' if success else 'danger')
     else:
-        flash('Action SOAR non déclenchée (seuil non atteint ou erreur).', 'warning')
+        from ..playbooks.isolate_host import isolate_host
+        success = isolate_host(
+            target_ip, incident.id,
+            os.getenv('WAZUH_API_URL', 'https://172.16.1.10:55000')
+        )
+        flash('Isolation effectuée.' if success else 'Isolation échouée.', 'success' if success else 'danger')
 
     return redirect(url_for('incidents.incident_detail', id=id))

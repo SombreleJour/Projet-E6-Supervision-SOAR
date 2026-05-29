@@ -168,11 +168,6 @@
   </div>
   <div class="card-body">
     {% if prtg_status %}
-      {% if prtg_status.get('error') %}
-        <div class="alert alert-danger mb-0">
-          <i class="bi bi-exclamation-circle me-1"></i>PRTG injoignable — {{ prtg_status.get('error') }}
-        </div>
-      {% else %}
       <div class="row g-2 text-center">
         <div class="col-4">
           <div class="border border-success rounded p-2">
@@ -193,9 +188,10 @@
           </div>
         </div>
       </div>
-      {% endif %}
     {% else %}
-      <p class="text-secondary mb-0">Données PRTG non disponibles.</p>
+      <div class="alert alert-warning mb-0">
+        <i class="bi bi-exclamation-triangle me-1"></i>PRTG injoignable ou aucune donnée.
+      </div>
     {% endif %}
   </div>
 </div>
