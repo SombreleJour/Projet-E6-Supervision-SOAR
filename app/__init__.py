@@ -37,4 +37,14 @@ def create_app(config_class=Config):
         csrf.exempt(api_bp)
         csrf.exempt(soar_bp)
 
+    @app.errorhandler(403)
+    def forbidden(e):
+        from flask import render_template
+        return render_template('errors/403.html'), 403
+
+    @app.errorhandler(404)
+    def not_found(e):
+        from flask import render_template
+        return render_template('errors/404.html'), 404
+
     return app
