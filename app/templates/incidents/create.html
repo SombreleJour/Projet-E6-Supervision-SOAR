@@ -2,61 +2,63 @@
 {% block title %}Nouveau ticket{% endblock %}
 
 {% block content %}
-<div class="d-flex align-items-center mb-4 gap-3">
-  <a href="{{ url_for('incidents.list_incidents') }}" class="btn btn-sm btn-outline-secondary">
+<div class="flex items-center gap-4 mb-8">
+  <a href="{{ url_for('incidents.list_incidents') }}"
+     class="border border-border text-muted px-3 py-2 text-sm hover:border-accent hover:text-accent transition-colors duration-200">
     <i class="bi bi-arrow-left"></i>
   </a>
-  <h4 class="mb-0"><i class="bi bi-plus-circle me-2 text-primary"></i>Nouveau ticket</h4>
+  <div>
+    <h1 class="font-title text-2xl text-[#F5F5F5]">Nouveau ticket</h1>
+    <p class="text-xs text-muted mt-1 uppercase tracking-widest">Créer un incident manuellement</p>
+  </div>
 </div>
 
-<div class="card" style="max-width:720px;">
-  <div class="card-body">
+<div class="bg-surface border border-border max-w-2xl">
+  <div class="px-4 py-3 border-b border-border">
+    <p class="text-[10px] text-muted uppercase tracking-wider font-medium">Informations de l'incident</p>
+  </div>
+  <div class="p-6">
     <form method="POST" action="{{ url_for('incidents.new_incident') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-      <div class="mb-3">
-        <label class="form-label" for="title">Titre <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" id="title" name="title"
-               placeholder="Description courte de l'incident" required maxlength="200">
+      <div class="mb-5">
+        <label for="title" class="block text-[10px] text-muted uppercase tracking-wider mb-2">
+          Titre <span class="text-red-400">*</span>
+        </label>
+        <input type="text" id="title" name="title" required maxlength="200"
+               placeholder="Description courte de l'incident"
+               class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 placeholder:text-muted">
       </div>
 
-      <div class="mb-3">
-        <label class="form-label" for="description">Description</label>
-        <textarea class="form-control" id="description" name="description" rows="4"
-                  placeholder="Détails, étapes de reproduction, contexte…"></textarea>
+      <div class="mb-5">
+        <label for="description" class="block text-[10px] text-muted uppercase tracking-wider mb-2">Description</label>
+        <textarea id="description" name="description" rows="4"
+                  placeholder="Détails, étapes de reproduction, contexte…"
+                  class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 placeholder:text-muted resize-none"></textarea>
       </div>
 
-      <div class="row g-3 mb-3">
-        <div class="col-sm-4">
-          <label class="form-label" for="category">Catégorie</label>
-          <select class="form-select" id="category" name="category">
-            <option value="security">security</option>
-            <option value="performance">performance</option>
-            <option value="network">network</option>
+      <div class="grid grid-cols-3 gap-4 mb-5">
+        {% for label, name, options in [
+          ('Catégorie', 'category', ['security', 'performance', 'network']),
+          ('Criticité', 'criticality', ['low', 'medium', 'high', 'critical']),
+          ('Source', 'source', ['manual', 'wazuh', 'prtg'])
+        ] %}
+        <div>
+          <label for="{{ name }}" class="block text-[10px] text-muted uppercase tracking-wider mb-2">{{ label }}</label>
+          <select id="{{ name }}" name="{{ name }}"
+                  class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+            {% for opt in options %}
+            <option value="{{ opt }}">{{ opt }}</option>
+            {% endfor %}
           </select>
         </div>
-        <div class="col-sm-4">
-          <label class="form-label" for="criticality">Criticité</label>
-          <select class="form-select" id="criticality" name="criticality">
-            <option value="low">low</option>
-            <option value="medium">medium</option>
-            <option value="high">high</option>
-            <option value="critical">critical</option>
-          </select>
-        </div>
-        <div class="col-sm-4">
-          <label class="form-label" for="source">Source</label>
-          <select class="form-select" id="source" name="source">
-            <option value="manual">manual</option>
-            <option value="wazuh">wazuh</option>
-            <option value="prtg">prtg</option>
-          </select>
-        </div>
+        {% endfor %}
       </div>
 
-      <div class="mb-4">
-        <label class="form-label" for="asset_id">Asset concerné</label>
-        <select class="form-select" id="asset_id" name="asset_id">
+      <div class="mb-6">
+        <label for="asset_id" class="block text-[10px] text-muted uppercase tracking-wider mb-2">Asset concerné</label>
+        <select id="asset_id" name="asset_id"
+                class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
           <option value="">— Aucun —</option>
           {% for asset in assets %}
           <option value="{{ asset.id }}">{{ asset.name }} ({{ asset.ip_address }})</option>
@@ -64,11 +66,15 @@
         </select>
       </div>
 
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">
-          <i class="bi bi-check-lg me-1"></i>Créer l'incident
+      <div class="flex gap-3">
+        <button type="submit"
+                class="bg-accent text-bg text-xs font-title font-bold px-6 py-2.5 uppercase tracking-widest hover:bg-[#d4eb3d] transition-colors duration-200">
+          <i class="bi bi-check-lg mr-1"></i>Créer l'incident
         </button>
-        <a href="{{ url_for('incidents.list_incidents') }}" class="btn btn-outline-secondary">Annuler</a>
+        <a href="{{ url_for('incidents.list_incidents') }}"
+           class="border border-border text-[#F5F5F5] text-xs px-6 py-2.5 hover:border-muted transition-colors duration-200 uppercase tracking-wider">
+          Annuler
+        </a>
       </div>
     </form>
   </div>
