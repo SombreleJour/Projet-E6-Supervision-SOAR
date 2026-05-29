@@ -142,8 +142,17 @@
               <th>Assigné</th>
             </tr>
           </thead>
-          <tbody id="recent-incidents-body">
-            {# Ce tableau est peuplé par dashboard.js #}
+          <tbody>
+            {% for inc in recent_incidents %}
+            <tr class="cursor-pointer" onclick="window.location='{{ url_for('incidents.incident_detail', id=inc.id) }}'">
+              <td class="text-truncate" style="max-width:180px;">{{ inc.title }}</td>
+              <td><span class="badge crit-{{ inc.criticality }}">{{ inc.criticality }}</span></td>
+              <td><span class="badge stat-{{ inc.status }}">{{ inc.status }}</span></td>
+              <td class="text-secondary small">{{ inc.assignee.username if inc.assignee else '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-center text-secondary py-3">Aucun incident</td></tr>
+            {% endfor %}
           </tbody>
         </table>
       </div>
