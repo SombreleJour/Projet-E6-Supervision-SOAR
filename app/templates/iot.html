@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}IoT{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="mb-0"><i class="bi bi-thermometer-half me-2 text-info"></i>Sonde environnementale</h4>
+  <small class="text-secondary" id="iot-refresh-label">Actualisation automatique toutes les 60s</small>
+</div>
+
+{% if not sensor %}
+<div class="alert alert-warning">
+  <i class="bi bi-exclamation-triangle me-1"></i>
+  Aucun capteur actif trouvé en base. Lancez <code>scripts/seed.py</code> pour initialiser le capteur DHT22.
+</div>
+{% else %}
+
+<div class="row g-3 mb-4">
+
+  <!-- Infos sonde -->
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-cpu me-1"></i>Sonde active</div>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-secondary small">Nom</span>
+          <span class="small fw-semibold">{{ sensor.name }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-secondary small">Type</span>
+          <span class="small">{{ sensor.sensor_type }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-secondary small">Localisation</span>
+          <span class="small">{{ sensor.location or '—' }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-secondary small">Raspberry ID</span>
+          <code class="small">{{ sensor.raspberry_id or '—' }}</code>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-secondary small">Statut</span>
+          <span class="badge bg-success">Actif</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Dernière mesure -->
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-clock me-1"></i>Dernière mesure</div>
+      <div class="card-body text-center">
+        {% if latest_reading %}
+
+          <!-- Température -->
+          {% set temp = latest_reading.temperature | float %}
+          {% if temp > thresholds.temp_max or temp < thresholds.temp_min %}
+          <div class="alert alert-danger py-1 mb-2 small">
+            <i class="bi bi-exclamation-circle me-1"></i>Température hors seuils !
+          </div>
+          {% endif %}
+          <div class="mb-3">
+            <p class="text-secondary small mb-0">Température</p>
+            <h2 class="fw-bold" id="live-temp"
+                style="color: {% if temp > thresholds.temp_max or temp < thresholds.temp_min %}var(--bs-danger){% else %}var(--bs-info){% endif %}">
+              {{ temp }}°C
+            </h2>
+            <small class="text-secondary">Seuils : {{ thresholds.temp_min }}°C – {{ thresholds.temp_max }}°C</small>
+          </div>
+
+          <!-- Humidité -->
+          {% set hum = latest_reading.humidity | float %}
+          {% if hum > thresholds.hum_max or hum < thresholds.hum_min %}
+          <div class="alert alert-warning py-1 mb-2 small">
+            <i class="bi bi-exclamation-triangle me-1"></i>Humidité hors seuils !
+          </div>
+          {% endif %}
+          <div>
+            <p class="text-secondary small mb-0">Humidité</p>
+            <h2 class="fw-bold" id="live-hum"
+                style="color: {% if hum > thresholds.hum_max or hum < thresholds.hum_min %}var(--bs-warning){% else %}var(--bs-primary){% endif %}">
+              {{ hum }}%
+            </h2>
+            <small class="text-secondary">Seuils : {{ thresholds.hum_min }}% – {{ thresholds.hum_max }}%</small>
+          </div>
+
+          <p class="text-secondary small mt-3 mb-0">
+            <i class="bi bi-clock me-1"></i>
+            {{ latest_reading.recorded_at.strftime('%d/%m/%Y à %H:%M:%S') if latest_reading.recorded_at else '—' }}
+          </p>
+
+        {% else %}
+          <p class="text-secondary mb-0">Aucune mesure disponible.<br>En attente de données du RPi5.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Seuils configurés -->
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-sliders me-1"></i>Seuils d'alerte</div>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-secondary small">Temp. max</span>
+          <span class="badge bg-danger">{{ thresholds.temp_max }}°C</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-secondary small">Temp. min</span>
+          <span class="badge bg-info text-dark">{{ thresholds.temp_min }}°C</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-secondary small">Hum. max</span>
+          <span class="badge bg-warning text-dark">{{ thresholds.hum_max }}%</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-secondary small">Hum. min</span>
+          <span class="badge bg-secondary">{{ thresholds.hum_min }}%</span>
+        </li>
+      </ul>
+      <div class="card-footer">
+        {% if current_user.has_role('admin') %}
+        <a href="{{ url_for('admin.settings') }}" class="btn btn-outline-secondary btn-sm w-100">
+          <i class="bi bi-gear me-1"></i>Modifier les seuils
+        </a>
+        {% else %}
+        <small class="text-secondary">Modification réservée à l'administrateur.</small>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Graphique historique 24h ──────────────────────────────────────── -->
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-graph-up me-1"></i>Historique 24 heures</span>
+    <small class="text-secondary" id="chart-status">Chargement…</small>
+  </div>
+  <div class="card-body">
+    <canvas id="iotChart" style="max-height:320px;"></canvas>
+  </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const IOT_HISTORY_JSON = {{ history_json | safe }};
+</script>
+<script src="{{ url_for('static', filename='js/iot.js') }}"></script>
+{% endblock %}

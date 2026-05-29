@@ -1,0 +1,88 @@
+/* ── Variables criticité / sévérité / statut ────────────────────────── */
+:root {
+  --crit-critical: #dc3545;
+  --crit-high:     #fd7e14;
+  --crit-medium:   #ffc107;
+  --crit-low:      #198754;
+  --stat-open:     #0d6efd;
+  --stat-in-progress: #ffc107;
+  --stat-closed:   #6c757d;
+}
+
+/* Badges criticité */
+.badge.crit-critical { background-color: var(--crit-critical); }
+.badge.crit-high     { background-color: var(--crit-high); }
+.badge.crit-medium   { background-color: var(--crit-medium); color: #000; }
+.badge.crit-low      { background-color: var(--crit-low); }
+
+/* Badges statut */
+.badge.stat-open        { background-color: var(--stat-open); }
+.badge.stat-in_progress { background-color: var(--stat-in-progress); color: #000; }
+.badge.stat-closed      { background-color: var(--stat-closed); }
+
+/* Badges sévérité Wazuh (numérique ou textuel) */
+.badge.sev-critical,
+.badge[class*="sev-"]:not(.sev-high):not(.sev-medium):not(.sev-low):not(.sev-unknown) {
+  background-color: var(--crit-critical);
+}
+.badge.sev-high    { background-color: var(--crit-high); }
+.badge.sev-medium  { background-color: var(--crit-medium); color: #000; }
+.badge.sev-low     { background-color: var(--crit-low); }
+.badge.sev-unknown { background-color: #6c757d; }
+
+/* ── Sidebar ─────────────────────────────────────────────────────────── */
+.sidebar .nav-link {
+  color: #adb5bd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  padding: 0.45rem 0.75rem;
+  transition: background-color 0.15s, color 0.15s;
+}
+.sidebar .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #f8f9fa;
+}
+.sidebar .nav-link.active {
+  background-color: rgba(13, 110, 253, 0.2);
+  color: #6ea8fe;
+}
+.sidebar .nav-link i {
+  width: 1.1rem;
+  text-align: center;
+}
+
+/* ── Tables ──────────────────────────────────────────────────────────── */
+.table > tbody > tr.cursor-pointer {
+  cursor: pointer;
+}
+.table > tbody > tr.cursor-pointer:hover td {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* ── Cards ───────────────────────────────────────────────────────────── */
+.card {
+  background-color: #1e1e2e;
+  border-color: #2d2d44;
+}
+.card-header {
+  background-color: rgba(255, 255, 255, 0.04);
+  border-bottom-color: #2d2d44;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* ── Flash messages ─────────────────────────────────────────────────── */
+.alert {
+  border-radius: 6px;
+}
+
+/* ── Login page ─────────────────────────────────────────────────────── */
+body.d-flex {
+  background-color: #12121e;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #1a1a2e; }
+::-webkit-scrollbar-thumb { background: #3a3a5c; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #4a4a7c; }

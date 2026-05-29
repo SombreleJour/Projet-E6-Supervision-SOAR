@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Incidents{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="mb-0"><i class="bi bi-exclamation-triangle me-2 text-warning"></i>Incidents</h4>
+  {% if current_user.has_role('admin') or current_user.has_role('analyst') %}
+  <a href="{{ url_for('incidents.new_incident') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg me-1"></i>Nouveau ticket
+  </a>
+  {% endif %}
+</div>
+
+<!-- ── Filtres ─────────────────────────────────────────────────────────── -->
+<form method="GET" action="{{ url_for('incidents.list_incidents') }}" class="card card-body mb-4">
+  <div class="row g-2 align-items-end">
+    <div class="col-sm-6 col-md-3">
+      <label class="form-label small mb-1">Statut</label>
+      <select name="status" class="form-select form-select-sm">
+        <option value="">Tous</option>
+        {% for s in ['open', 'in_progress', 'closed'] %}
+        <option value="{{ s }}" {% if filters.status == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <label class="form-label small mb-1">Criticité</label>
+      <select name="criticality" class="form-select form-select-sm">
+        <option value="">Toutes</option>
+        {% for c in ['critical', 'high', 'medium', 'low'] %}
+        <option value="{{ c }}" {% if filters.criticality == c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <label class="form-label small mb-1">Catégorie</label>
+      <select name="category" class="form-select form-select-sm">
+        <option value="">Toutes</option>
+        {% for cat in ['security', 'performance', 'network'] %}
+        <option value="{{ cat }}" {% if filters.category == cat %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-6 col-md-2">
+      <label class="form-label small mb-1">Source</label>
+      <select name="source" class="form-select form-select-sm">
+        <option value="">Toutes</option>
+        {% for src in ['wazuh', 'prtg', 'manual'] %}
+        <option value="{{ src }}" {% if filters.source == src %}selected{% endif %}>{{ src }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-12 col-md-1 d-flex gap-2">
+      <button type="submit" class="btn btn-secondary btn-sm w-100">Filtrer</button>
+    </div>
+  </div>
+</form>
+
+<!-- ── Tableau ─────────────────────────────────────────────────────────── -->
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Titre</th>
+          <th>Criticité</th>
+          <th>Statut</th>
+          <th>Source</th>
+          <th>Asset</th>
+          <th>Assigné</th>
+          <th>Créé le</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for incident in incidents %}
+        <tr class="cursor-pointer" onclick="window.location='{{ url_for('incidents.incident_detail', id=incident.id) }}'">
+          <td class="text-secondary small">{{ incident.id }}</td>
+          <td>{{ incident.title | truncate(60) }}</td>
+          <td><span class="badge crit-{{ incident.criticality }}">{{ incident.criticality }}</span></td>
+          <td><span class="badge stat-{{ incident.status }}">{{ incident.status }}</span></td>
+          <td><span class="badge bg-secondary">{{ incident.source }}</span></td>
+          <td class="text-secondary small">{{ incident.asset.name if incident.asset else '—' }}</td>
+          <td class="text-secondary small">{{ incident.assignee.username if incident.assignee else '—' }}</td>
+          <td class="text-secondary small">
+            {{ incident.created_at.strftime('%d/%m/%Y %H:%M') if incident.created_at else '—' }}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-secondary py-4">Aucun incident trouvé</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── Pagination ──────────────────────────────────────────────────────── -->
+{% if pagination and pagination.pages > 1 %}
+<nav class="mt-3">
+  <ul class="pagination pagination-sm justify-content-center">
+    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+      <a class="page-link" href="{{ url_for('incidents.list_incidents', page=pagination.prev_num, **filters) }}">
+        &laquo;
+      </a>
+    </li>
+    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+      {% if p %}
+        <li class="page-item {% if p == pagination.page %}active{% endif %}">
+          <a class="page-link" href="{{ url_for('incidents.list_incidents', page=p, **filters) }}">{{ p }}</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+      {% endif %}
+    {% endfor %}
+    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+      <a class="page-link" href="{{ url_for('incidents.list_incidents', page=pagination.next_num, **filters) }}">
+        &raquo;
+      </a>
+    </li>
+  </ul>
+</nav>
+<p class="text-center text-secondary small">
+  {{ pagination.total }} incident(s) — page {{ pagination.page }}/{{ pagination.pages }}
+</p>
+{% endif %}
+
+{% endblock %}

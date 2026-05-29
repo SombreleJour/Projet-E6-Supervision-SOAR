@@ -3,9 +3,9 @@ import os
 import logging
 from datetime import datetime, timezone
 
-from app.extensions import db
-from app.models.incident import Incident
-from app.models.asset import Asset
+from ..extensions import db
+from ..models.incident import Incident
+from ..models.asset import Asset
 
 logger = logging.getLogger(__name__)
 
@@ -140,7 +140,7 @@ def _update_incident(incident: Incident, criticality: str, description: str) -> 
         updated = True
 
     # Mise à jour description si enrichie
-    if description and description not in incident.description:
+    if description and description not in (incident.description or ''):
         incident.description += f"\n\n[Mise à jour {datetime.now(timezone.utc).isoformat()}]\n{description}"
         updated = True
 
@@ -161,7 +161,7 @@ def _trigger_isolation(incident_id: int, asset, source: str) -> bool:
     En cas d'échec, journalise sans lever d'exception (fail-safe).
     """
     try:
-        from app.playbooks.isolate_host import isolate_host
+        from ..playbooks.isolate_host import isolate_host
 
         target_ip = asset.ip_address if asset else source
 

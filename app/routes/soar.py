@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from ..extensions import db
 from ..utils.decorators import role_required
 from ..models.incident import Incident
 from ..services import soar_service
@@ -20,7 +21,7 @@ def process():
 @soar_bp.route('/status/<int:incident_id>', methods=['GET'])
 @role_required('admin', 'analyst')
 def status(incident_id):
-    incident = Incident.query.get_or_404(incident_id)
+    incident = db.get_or_404(Incident, incident_id)
 
     return jsonify({
         'incident_id': incident.id,

@@ -26,6 +26,9 @@ def list_incidents():
     category = request.args.get('category')
     source = request.args.get('source')
 
+    page = int(request.args.get('page', 1))
+    per_page = 20
+
     query = Incident.query.order_by(Incident.created_at.desc())
 
     if status and status in VALID_STATUSES:
@@ -37,11 +40,12 @@ def list_incidents():
     if source and source in VALID_SOURCES:
         query = query.filter_by(source=source)
 
-    incidents = query.all()
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
 
     return render_template(
         'incidents/list.html',
-        incidents=incidents,
+        pagination=pagination,
+        incidents=pagination.items,
         filters={'status': status, 'criticality': criticality,
                  'category': category, 'source': source},
     )
@@ -86,7 +90,7 @@ def new_incident():
 @incidents_bp.route('/<int:id>')
 @role_required('admin', 'analyst')
 def incident_detail(id):
-    incident = Incident.query.get_or_404(id)
+    incident = db.get_or_404(Incident, id)
     users = User.query.filter_by(is_active=True).all()
     return render_template('incidents/detail.html', incident=incident, users=users)
 
@@ -94,7 +98,7 @@ def incident_detail(id):
 @incidents_bp.route('/<int:id>/comment', methods=['POST'])
 @login_required
 def add_comment(id):
-    incident = Incident.query.get_or_404(id)
+    incident = db.get_or_404(Incident, id)
     comment_text = request.form.get('comment', '').strip()
 
     if not comment_text:
@@ -116,7 +120,7 @@ def add_comment(id):
 @incidents_bp.route('/<int:id>/assign', methods=['POST'])
 @role_required('admin', 'analyst')
 def assign_incident(id):
-    incident = Incident.query.get_or_404(id)
+    incident = db.get_or_404(Incident, id)
     user_id = request.form.get('user_id')
 
     if user_id:
@@ -140,7 +144,7 @@ def assign_incident(id):
 @incidents_bp.route('/<int:id>/status', methods=['POST'])
 @role_required('admin', 'analyst')
 def change_status(id):
-    incident = Incident.query.get_or_404(id)
+    incident = db.get_or_404(Incident, id)
     new_status = request.form.get('status')
 
     if new_status not in VALID_STATUSES:
@@ -157,7 +161,7 @@ def change_status(id):
 @incidents_bp.route('/<int:id>/soar', methods=['POST'])
 @role_required('admin', 'analyst')
 def trigger_soar(id):
-    incident = Incident.query.get_or_404(id)
+    incident = db.get_or_404(Incident, id)
 
     if not incident.asset_id:
         flash('Aucun asset lié à cet incident — isolation impossible.', 'warning')

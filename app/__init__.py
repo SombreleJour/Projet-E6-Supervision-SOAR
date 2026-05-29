@@ -1,6 +1,6 @@
 from flask import Flask
 from .config import Config
-from .extensions import db, login_manager
+from .extensions import db, login_manager, csrf
 
 
 def create_app(config_class=Config):
@@ -11,6 +11,7 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'warning'
+    csrf.init_app(app)
 
     with app.app_context():
         from .models import user, incident, asset, sensor_reading  # noqa: F401
@@ -32,5 +33,8 @@ def create_app(config_class=Config):
         app.register_blueprint(admin_bp, url_prefix='/admin')
         app.register_blueprint(api_bp, url_prefix='/api')
         app.register_blueprint(soar_bp, url_prefix='/api/soar')
+
+        csrf.exempt(api_bp)
+        csrf.exempt(soar_bp)
 
     return app

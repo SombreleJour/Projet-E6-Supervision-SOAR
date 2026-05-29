@@ -82,7 +82,7 @@ def create_user():
 @admin_bp.route('/users/<int:id>/toggle', methods=['POST'])
 @role_required('admin')
 def toggle_user(id):
-    user = User.query.get_or_404(id)
+    user = db.get_or_404(User, id)
     user.is_active = not user.is_active
     db.session.commit()
     state = 'activé' if user.is_active else 'désactivé'

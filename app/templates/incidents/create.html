@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Nouveau ticket{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4 gap-3">
+  <a href="{{ url_for('incidents.list_incidents') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <h4 class="mb-0"><i class="bi bi-plus-circle me-2 text-primary"></i>Nouveau ticket</h4>
+</div>
+
+<div class="card" style="max-width:720px;">
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('incidents.new_incident') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="mb-3">
+        <label class="form-label" for="title">Titre <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="title" name="title"
+               placeholder="Description courte de l'incident" required maxlength="200">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="description">Description</label>
+        <textarea class="form-control" id="description" name="description" rows="4"
+                  placeholder="Détails, étapes de reproduction, contexte…"></textarea>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-sm-4">
+          <label class="form-label" for="category">Catégorie</label>
+          <select class="form-select" id="category" name="category">
+            <option value="security">security</option>
+            <option value="performance">performance</option>
+            <option value="network">network</option>
+          </select>
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label" for="criticality">Criticité</label>
+          <select class="form-select" id="criticality" name="criticality">
+            <option value="low">low</option>
+            <option value="medium">medium</option>
+            <option value="high">high</option>
+            <option value="critical">critical</option>
+          </select>
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label" for="source">Source</label>
+          <select class="form-select" id="source" name="source">
+            <option value="manual">manual</option>
+            <option value="wazuh">wazuh</option>
+            <option value="prtg">prtg</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label" for="asset_id">Asset concerné</label>
+        <select class="form-select" id="asset_id" name="asset_id">
+          <option value="">— Aucun —</option>
+          {% for asset in assets %}
+          <option value="{{ asset.id }}">{{ asset.name }} ({{ asset.ip_address }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg me-1"></i>Créer l'incident
+        </button>
+        <a href="{{ url_for('incidents.list_incidents') }}" class="btn btn-outline-secondary">Annuler</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
