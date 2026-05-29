@@ -2,149 +2,158 @@
 {% block title %}Sécurité{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h4 class="mb-0"><i class="bi bi-shield-exclamation me-2 text-danger"></i>Alertes de sécurité</h4>
+<div class="mb-8">
+  <h1 class="font-title text-2xl text-[#F5F5F5]">Alertes de sécurité</h1>
+  <p class="text-xs text-muted mt-1 uppercase tracking-widest">Wazuh — Base de données + temps réel</p>
 </div>
 
-<!-- ── Alertes temps réel Wazuh ───────────────────────────────────────── -->
+<!-- ── Alertes temps réel ──────────────────────────────────────────────────── -->
 {% if live_alerts %}
-<div class="card mb-4 border-warning">
-  <div class="card-header text-warning">
-    <i class="bi bi-broadcast me-1"></i>Alertes temps réel Wazuh (non indexées)
+<div class="bg-surface border border-yellow-800/60 mb-6">
+  <div class="px-4 py-3 border-b border-yellow-800/60">
+    <p class="text-[10px] text-yellow-400 uppercase tracking-wider font-medium">
+      <i class="bi bi-broadcast mr-1"></i>Alertes temps réel Wazuh (non indexées)
+    </p>
   </div>
-  <div class="card-body p-0">
-    <table class="table table-hover table-sm mb-0">
-      <thead>
-        <tr>
-          <th>ID règle</th>
-          <th>Description</th>
-          <th>Sévérité</th>
-          <th>Agent</th>
-          <th>Horodatage</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for la in live_alerts %}
-        <tr>
-          <td><code class="small">{{ la.get('rule', {}).get('id', '—') }}</code></td>
-          <td class="small text-truncate" style="max-width:200px;">
-            {{ la.get('rule', {}).get('description', '—') }}
-          </td>
-          <td>
-            <span class="badge sev-{{ la.get('rule', {}).get('level', 0) | string }}">
-              {{ la.get('rule', {}).get('level', '—') }}
-            </span>
-          </td>
-          <td class="small">{{ la.get('agent', {}).get('name', '—') }}</td>
-          <td class="text-secondary small">{{ la.get('timestamp', '—')[:19] | replace('T', ' ') }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b border-border">
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">ID règle</th>
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Description</th>
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Niveau</th>
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Agent</th>
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Horodatage</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for la in live_alerts %}
+      <tr class="border-b border-border/50 hover:bg-[#1c1c1c] transition-colors duration-150">
+        <td class="px-4 py-3"><code class="text-xs text-accent">{{ la.get('rule', {}).get('id', '—') }}</code></td>
+        <td class="px-4 py-3 text-[#F5F5F5] max-w-xs">
+          <span class="block truncate text-xs">{{ la.get('rule', {}).get('description', '—') }}</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="badge sev-{{ la.get('rule', {}).get('level', 0) | string }}">
+            {{ la.get('rule', {}).get('level', '—') }}
+          </span>
+        </td>
+        <td class="px-4 py-3 text-muted text-xs">{{ la.get('agent', {}).get('name', '—') }}</td>
+        <td class="px-4 py-3 text-muted text-xs whitespace-nowrap">
+          {{ la.get('timestamp', '—')[:19] | replace('T', ' ') }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endif %}
 
-<!-- ── Filtres ─────────────────────────────────────────────────────────── -->
-<form method="GET" action="{{ url_for('security.security') }}" class="card card-body mb-4">
-  <div class="row g-2 align-items-end">
-    <div class="col-sm-5">
-      <label class="form-label small mb-1">Sévérité</label>
-      <select name="severity" class="form-select form-select-sm">
-        <option value="">Toutes</option>
-        {% for sev in ['critical', 'high', 'medium', 'low'] %}
-        <option value="{{ sev }}" {% if filters.severity == sev %}selected{% endif %}>{{ sev }}</option>
-        {% endfor %}
-      </select>
+<!-- ── Filtres ─────────────────────────────────────────────────────────────── -->
+<div class="bg-surface border border-border p-4 mb-6">
+  <form method="GET" action="{{ url_for('security.security') }}">
+    <div class="flex flex-wrap gap-3 items-end">
+      <div>
+        <label class="block text-[10px] text-muted uppercase tracking-wider mb-1.5">Sévérité</label>
+        <select name="severity"
+                class="bg-bg border border-border text-[#F5F5F5] text-sm px-3 py-2 outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+          <option value="">Toutes</option>
+          {% for sev in ['critical', 'high', 'medium', 'low'] %}
+          <option value="{{ sev }}" {% if filters.severity == sev %}selected{% endif %}>{{ sev }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block text-[10px] text-muted uppercase tracking-wider mb-1.5">Source</label>
+        <select name="source"
+                class="bg-bg border border-border text-[#F5F5F5] text-sm px-3 py-2 outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+          <option value="">Toutes</option>
+          <option value="wazuh" {% if filters.source == 'wazuh' %}selected{% endif %}>wazuh</option>
+          <option value="prtg" {% if filters.source == 'prtg' %}selected{% endif %}>prtg</option>
+        </select>
+      </div>
+      <button type="submit"
+              class="border border-border text-[#F5F5F5] text-xs px-4 py-2 hover:border-accent transition-colors duration-200 uppercase tracking-wider">
+        Filtrer
+      </button>
     </div>
-    <div class="col-sm-5">
-      <label class="form-label small mb-1">Source</label>
-      <select name="source" class="form-select form-select-sm">
-        <option value="">Toutes</option>
-        <option value="wazuh" {% if filters.source == 'wazuh' %}selected{% endif %}>wazuh</option>
-        <option value="prtg" {% if filters.source == 'prtg' %}selected{% endif %}>prtg</option>
-      </select>
-    </div>
-    <div class="col-sm-2">
-      <button type="submit" class="btn btn-secondary btn-sm w-100">Filtrer</button>
-    </div>
-  </div>
-</form>
-
-<!-- ── Tableau alertes en base ───────────────────────────────────────── -->
-<div class="card">
-  <div class="card-body p-0">
-    <table class="table table-hover mb-0">
-      <thead>
-        <tr>
-          <th>ID externe</th>
-          <th>Règle</th>
-          <th>Sévérité</th>
-          <th>Source</th>
-          <th>Asset</th>
-          <th>Incident</th>
-          <th>Date</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for alert in alerts %}
-        <tr>
-          <td><code class="small">{{ alert.external_id or '—' }}</code></td>
-          <td class="small text-truncate" style="max-width:180px;" title="{{ alert.rule_name }}">
-            {{ alert.rule_name or '—' }}
-          </td>
-          <td><span class="badge sev-{{ alert.severity }}">{{ alert.severity or '—' }}</span></td>
-          <td><span class="badge bg-secondary">{{ alert.source }}</span></td>
-          <td class="small">{{ alert.asset.name if alert.asset else '—' }}</td>
-          <td class="small">
-            {% if alert.incident %}
-              <a href="{{ url_for('incidents.incident_detail', id=alert.incident.id) }}"
-                 class="text-decoration-none">
-                #{{ alert.incident.id }}
-              </a>
-            {% else %}
-              <a href="{{ url_for('incidents.new_incident') }}"
-                 class="btn btn-xs btn-outline-primary btn-sm py-0 px-1 small">
-                Créer ticket
-              </a>
-            {% endif %}
-          </td>
-          <td class="text-secondary small">
-            {{ alert.created_at.strftime('%d/%m %H:%M') if alert.created_at else '—' }}
-          </td>
-          <td></td>
-        </tr>
-        {% else %}
-        <tr><td colspan="8" class="text-center text-secondary py-4">Aucune alerte en base</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  </form>
 </div>
 
-<!-- ── Pagination ──────────────────────────────────────────────────────── -->
-{% if pagination and pagination.pages > 1 %}
-<nav class="mt-3">
-  <ul class="pagination pagination-sm justify-content-center">
-    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-      <a class="page-link" href="{{ url_for('security.security', page=pagination.prev_num, **filters) }}">&laquo;</a>
-    </li>
-    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-      {% if p %}
-        <li class="page-item {% if p == pagination.page %}active{% endif %}">
-          <a class="page-link" href="{{ url_for('security.security', page=p, **filters) }}">{{ p }}</a>
-        </li>
+<!-- ── Tableau alertes en base ────────────────────────────────────────────── -->
+<div class="bg-surface border border-border">
+  <div class="px-4 py-3 border-b border-border">
+    <p class="text-[10px] text-muted uppercase tracking-wider font-medium">Alertes indexées</p>
+  </div>
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b border-border">
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">ID externe</th>
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Règle</th>
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Sévérité</th>
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Source</th>
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Asset</th>
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Incident</th>
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for alert in alerts %}
+      <tr class="border-b border-border/50 hover:bg-[#1c1c1c] transition-colors duration-150">
+        <td class="px-4 py-3"><code class="text-xs text-muted">{{ alert.external_id or '—' }}</code></td>
+        <td class="px-4 py-3 text-[#F5F5F5] max-w-xs">
+          <span class="block truncate text-xs" title="{{ alert.rule_name }}">{{ alert.rule_name or '—' }}</span>
+        </td>
+        <td class="px-4 py-3"><span class="badge sev-{{ alert.severity }}">{{ alert.severity or '—' }}</span></td>
+        <td class="px-4 py-3">
+          <span class="text-[10px] uppercase tracking-wider text-muted border border-border px-1.5 py-0.5">{{ alert.source }}</span>
+        </td>
+        <td class="px-4 py-3 text-muted text-xs">{{ alert.asset.name if alert.asset else '—' }}</td>
+        <td class="px-4 py-3">
+          {% if alert.incident %}
+          <a href="{{ url_for('incidents.incident_detail', id=alert.incident.id) }}"
+             class="text-xs text-accent hover:underline">#{{ alert.incident.id }}</a>
+          {% else %}
+          <a href="{{ url_for('incidents.new_incident') }}"
+             class="text-[10px] uppercase tracking-wider text-muted border border-border px-2 py-0.5 hover:border-accent hover:text-accent transition-colors duration-200">
+            Créer
+          </a>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3 text-muted text-xs whitespace-nowrap">
+          {{ alert.created_at.strftime('%d/%m %H:%M') if alert.created_at else '—' }}
+        </td>
+      </tr>
       {% else %}
-        <li class="page-item disabled"><span class="page-link">…</span></li>
-      {% endif %}
-    {% endfor %}
-    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-      <a class="page-link" href="{{ url_for('security.security', page=pagination.next_num, **filters) }}">&raquo;</a>
-    </li>
-  </ul>
-</nav>
-<p class="text-center text-secondary small">
+      <tr><td colspan="7" class="px-4 py-12 text-center text-muted text-sm">Aucune alerte en base</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- ── Pagination ──────────────────────────────────────────────────────────── -->
+{% if pagination and pagination.pages > 1 %}
+<div class="flex items-center justify-center gap-1 mt-6">
+  <a href="{{ url_for('security.security', page=pagination.prev_num, **filters) }}"
+     class="px-3 py-1.5 border border-border text-sm text-muted transition-colors duration-200 {% if not pagination.has_prev %}opacity-40 pointer-events-none{% else %}hover:border-accent hover:text-accent{% endif %}">
+    &laquo;
+  </a>
+  {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+    {% if p %}
+    <a href="{{ url_for('security.security', page=p, **filters) }}"
+       class="px-3 py-1.5 border text-sm transition-colors duration-200
+              {% if p == pagination.page %}border-accent text-accent{% else %}border-border text-muted hover:border-accent hover:text-accent{% endif %}">
+      {{ p }}
+    </a>
+    {% else %}
+    <span class="px-3 py-1.5 text-muted">…</span>
+    {% endif %}
+  {% endfor %}
+  <a href="{{ url_for('security.security', page=pagination.next_num, **filters) }}"
+     class="px-3 py-1.5 border border-border text-sm text-muted transition-colors duration-200 {% if not pagination.has_next %}opacity-40 pointer-events-none{% else %}hover:border-accent hover:text-accent{% endif %}">
+    &raquo;
+  </a>
+</div>
+<p class="text-center text-xs text-muted mt-2">
   {{ pagination.total }} alerte(s) — page {{ pagination.page }}/{{ pagination.pages }}
 </p>
 {% endif %}

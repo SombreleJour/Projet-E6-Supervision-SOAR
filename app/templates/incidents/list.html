@@ -2,126 +2,118 @@
 {% block title %}Incidents{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h4 class="mb-0"><i class="bi bi-exclamation-triangle me-2 text-warning"></i>Incidents</h4>
+<div class="flex items-center justify-between mb-8">
+  <div>
+    <h1 class="font-title text-2xl text-[#F5F5F5]">Incidents</h1>
+    <p class="text-xs text-muted mt-1 uppercase tracking-widest">Gestion des tickets</p>
+  </div>
   {% if current_user.has_role('admin') or current_user.has_role('analyst') %}
-  <a href="{{ url_for('incidents.new_incident') }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-plus-lg me-1"></i>Nouveau ticket
+  <a href="{{ url_for('incidents.new_incident') }}"
+     class="bg-accent text-bg text-xs font-title font-bold px-4 py-2 uppercase tracking-widest hover:bg-[#d4eb3d] transition-colors duration-200">
+    <i class="bi bi-plus-lg mr-1"></i>Nouveau ticket
   </a>
   {% endif %}
 </div>
 
-<!-- ── Filtres ─────────────────────────────────────────────────────────── -->
-<form method="GET" action="{{ url_for('incidents.list_incidents') }}" class="card card-body mb-4">
-  <div class="row g-2 align-items-end">
-    <div class="col-sm-6 col-md-3">
-      <label class="form-label small mb-1">Statut</label>
-      <select name="status" class="form-select form-select-sm">
-        <option value="">Tous</option>
-        {% for s in ['open', 'in_progress', 'closed'] %}
-        <option value="{{ s }}" {% if filters.status == s %}selected{% endif %}>{{ s }}</option>
-        {% endfor %}
-      </select>
+<!-- ── Filtres ─────────────────────────────────────────────────────────────── -->
+<div class="bg-surface border border-border p-4 mb-6">
+  <form method="GET" action="{{ url_for('incidents.list_incidents') }}" id="filter-form">
+    <div class="flex flex-wrap gap-3 items-end">
+      {% for label, name, options in [
+        ('Statut', 'status', [('', 'Tous'), ('open', 'open'), ('in_progress', 'in_progress'), ('closed', 'closed')]),
+        ('Criticité', 'criticality', [('', 'Toutes'), ('critical', 'critical'), ('high', 'high'), ('medium', 'medium'), ('low', 'low')]),
+        ('Catégorie', 'category', [('', 'Toutes'), ('security', 'security'), ('performance', 'performance'), ('network', 'network')]),
+        ('Source', 'source', [('', 'Toutes'), ('wazuh', 'wazuh'), ('prtg', 'prtg'), ('manual', 'manual')])
+      ] %}
+      <div>
+        <label class="block text-[10px] text-muted uppercase tracking-wider mb-1.5">{{ label }}</label>
+        <select name="{{ name }}"
+                class="bg-bg border border-border text-[#F5F5F5] text-sm px-3 py-2 outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+          {% for val, text in options %}
+          <option value="{{ val }}" {% if filters[name] == val %}selected{% endif %}>{{ text }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endfor %}
+      <button type="submit"
+              class="border border-border text-[#F5F5F5] text-xs px-4 py-2 hover:border-accent transition-colors duration-200 uppercase tracking-wider">
+        Filtrer
+      </button>
     </div>
-    <div class="col-sm-6 col-md-3">
-      <label class="form-label small mb-1">Criticité</label>
-      <select name="criticality" class="form-select form-select-sm">
-        <option value="">Toutes</option>
-        {% for c in ['critical', 'high', 'medium', 'low'] %}
-        <option value="{{ c }}" {% if filters.criticality == c %}selected{% endif %}>{{ c }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-sm-6 col-md-3">
-      <label class="form-label small mb-1">Catégorie</label>
-      <select name="category" class="form-select form-select-sm">
-        <option value="">Toutes</option>
-        {% for cat in ['security', 'performance', 'network'] %}
-        <option value="{{ cat }}" {% if filters.category == cat %}selected{% endif %}>{{ cat }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-sm-6 col-md-2">
-      <label class="form-label small mb-1">Source</label>
-      <select name="source" class="form-select form-select-sm">
-        <option value="">Toutes</option>
-        {% for src in ['wazuh', 'prtg', 'manual'] %}
-        <option value="{{ src }}" {% if filters.source == src %}selected{% endif %}>{{ src }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-sm-12 col-md-1 d-flex gap-2">
-      <button type="submit" class="btn btn-secondary btn-sm w-100">Filtrer</button>
-    </div>
-  </div>
-</form>
-
-<!-- ── Tableau ─────────────────────────────────────────────────────────── -->
-<div class="card">
-  <div class="card-body p-0">
-    <table class="table table-hover mb-0">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Titre</th>
-          <th>Criticité</th>
-          <th>Statut</th>
-          <th>Source</th>
-          <th>Asset</th>
-          <th>Assigné</th>
-          <th>Créé le</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for incident in incidents %}
-        <tr class="cursor-pointer" onclick="window.location='{{ url_for('incidents.incident_detail', id=incident.id) }}'">
-          <td class="text-secondary small">{{ incident.id }}</td>
-          <td>{{ incident.title | truncate(60) }}</td>
-          <td><span class="badge crit-{{ incident.criticality }}">{{ incident.criticality }}</span></td>
-          <td><span class="badge stat-{{ incident.status }}">{{ incident.status }}</span></td>
-          <td><span class="badge bg-secondary">{{ incident.source }}</span></td>
-          <td class="text-secondary small">{{ incident.asset.name if incident.asset else '—' }}</td>
-          <td class="text-secondary small">{{ incident.assignee.username if incident.assignee else '—' }}</td>
-          <td class="text-secondary small">
-            {{ incident.created_at.strftime('%d/%m/%Y %H:%M') if incident.created_at else '—' }}
-          </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="8" class="text-center text-secondary py-4">Aucun incident trouvé</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  </form>
 </div>
 
-<!-- ── Pagination ──────────────────────────────────────────────────────── -->
-{% if pagination and pagination.pages > 1 %}
-<nav class="mt-3">
-  <ul class="pagination pagination-sm justify-content-center">
-    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-      <a class="page-link" href="{{ url_for('incidents.list_incidents', page=pagination.prev_num, **filters) }}">
-        &laquo;
-      </a>
-    </li>
-    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-      {% if p %}
-        <li class="page-item {% if p == pagination.page %}active{% endif %}">
-          <a class="page-link" href="{{ url_for('incidents.list_incidents', page=p, **filters) }}">{{ p }}</a>
-        </li>
+<!-- ── Tableau ─────────────────────────────────────────────────────────────── -->
+<div class="bg-surface border border-border">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b border-border">
+        <th class="px-4 py-3 text-left text-[10px] text-muted uppercase tracking-wider font-medium">#</th>
+        <th class="px-4 py-3 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Titre</th>
+        <th class="px-4 py-3 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Criticité</th>
+        <th class="px-4 py-3 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Statut</th>
+        <th class="px-4 py-3 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Source</th>
+        <th class="px-4 py-3 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Asset</th>
+        <th class="px-4 py-3 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Assigné</th>
+        <th class="px-4 py-3 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Créé le</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for incident in incidents %}
+      <tr class="border-b border-border/50 hover:bg-[#1c1c1c] transition-colors duration-150 cursor-pointer"
+          onclick="window.location='{{ url_for('incidents.incident_detail', id=incident.id) }}'">
+        <td class="px-4 py-3 text-muted text-xs">{{ incident.id }}</td>
+        <td class="px-4 py-3 text-[#F5F5F5] max-w-xs">
+          <span class="block truncate">{{ incident.title }}</span>
+        </td>
+        <td class="px-4 py-3"><span class="badge crit-{{ incident.criticality }}">{{ incident.criticality }}</span></td>
+        <td class="px-4 py-3"><span class="badge stat-{{ incident.status }}">{{ incident.status }}</span></td>
+        <td class="px-4 py-3">
+          <span class="text-[10px] uppercase tracking-wider text-muted border border-border px-1.5 py-0.5">{{ incident.source }}</span>
+        </td>
+        <td class="px-4 py-3 text-muted text-xs">{{ incident.asset.name if incident.asset else '—' }}</td>
+        <td class="px-4 py-3 text-muted text-xs">{{ incident.assignee.username if incident.assignee else '—' }}</td>
+        <td class="px-4 py-3 text-muted text-xs whitespace-nowrap">
+          {{ incident.created_at.strftime('%d/%m/%Y %H:%M') if incident.created_at else '—' }}
+        </td>
+      </tr>
       {% else %}
-        <li class="page-item disabled"><span class="page-link">…</span></li>
-      {% endif %}
-    {% endfor %}
-    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-      <a class="page-link" href="{{ url_for('incidents.list_incidents', page=pagination.next_num, **filters) }}">
-        &raquo;
-      </a>
-    </li>
-  </ul>
-</nav>
-<p class="text-center text-secondary small">
+      <tr><td colspan="8" class="px-4 py-12 text-center text-muted text-sm">Aucun incident trouvé</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- ── Pagination ──────────────────────────────────────────────────────────── -->
+{% if pagination and pagination.pages > 1 %}
+<div class="flex items-center justify-center gap-1 mt-6">
+  <a href="{{ url_for('incidents.list_incidents', page=pagination.prev_num, **filters) }}"
+     class="px-3 py-1.5 border border-border text-sm text-muted transition-colors duration-200 {% if not pagination.has_prev %}opacity-40 pointer-events-none{% else %}hover:border-accent hover:text-accent{% endif %}">
+    &laquo;
+  </a>
+  {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+    {% if p %}
+    <a href="{{ url_for('incidents.list_incidents', page=p, **filters) }}"
+       class="px-3 py-1.5 border text-sm transition-colors duration-200
+              {% if p == pagination.page %}border-accent text-accent{% else %}border-border text-muted hover:border-accent hover:text-accent{% endif %}">
+      {{ p }}
+    </a>
+    {% else %}
+    <span class="px-3 py-1.5 text-muted">…</span>
+    {% endif %}
+  {% endfor %}
+  <a href="{{ url_for('incidents.list_incidents', page=pagination.next_num, **filters) }}"
+     class="px-3 py-1.5 border border-border text-sm text-muted transition-colors duration-200 {% if not pagination.has_next %}opacity-40 pointer-events-none{% else %}hover:border-accent hover:text-accent{% endif %}">
+    &raquo;
+  </a>
+</div>
+<p class="text-center text-xs text-muted mt-2">
   {{ pagination.total }} incident(s) — page {{ pagination.page }}/{{ pagination.pages }}
 </p>
 {% endif %}
 
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/incidents.js') }}"></script>
 {% endblock %}

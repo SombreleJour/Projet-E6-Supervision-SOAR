@@ -2,144 +2,141 @@
 {% block title %}IoT{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h4 class="mb-0"><i class="bi bi-thermometer-half me-2 text-info"></i>Sonde environnementale</h4>
-  <small class="text-secondary" id="iot-refresh-label">Actualisation automatique toutes les 60s</small>
+<div class="flex items-center justify-between mb-8">
+  <div>
+    <h1 class="font-title text-2xl text-[#F5F5F5]">Sonde environnementale</h1>
+    <p class="text-xs text-muted mt-1 uppercase tracking-widest">DHT22 — Salle serveur</p>
+  </div>
+  <p class="text-xs text-muted" id="iot-refresh-label">Actualisation toutes les 60s</p>
 </div>
 
 {% if not sensor %}
-<div class="alert alert-warning">
-  <i class="bi bi-exclamation-triangle me-1"></i>
-  Aucun capteur actif trouvé en base. Lancez <code>scripts/seed.py</code> pour initialiser le capteur DHT22.
+<div class="border border-yellow-800 bg-yellow-950/30 px-4 py-3 text-sm text-yellow-300">
+  <i class="bi bi-exclamation-triangle mr-2"></i>
+  Aucun capteur actif en base. Lancez <code class="text-accent">scripts/seed.py</code> pour initialiser le capteur DHT22.
 </div>
+
 {% else %}
 
-<div class="row g-3 mb-4">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 
   <!-- Infos sonde -->
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-header"><i class="bi bi-cpu me-1"></i>Sonde active</div>
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item d-flex justify-content-between">
-          <span class="text-secondary small">Nom</span>
-          <span class="small fw-semibold">{{ sensor.name }}</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between">
-          <span class="text-secondary small">Type</span>
-          <span class="small">{{ sensor.sensor_type }}</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between">
-          <span class="text-secondary small">Localisation</span>
-          <span class="small">{{ sensor.location or '—' }}</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between">
-          <span class="text-secondary small">Raspberry ID</span>
-          <code class="small">{{ sensor.raspberry_id or '—' }}</code>
-        </li>
-        <li class="list-group-item d-flex justify-content-between">
-          <span class="text-secondary small">Statut</span>
-          <span class="badge bg-success">Actif</span>
-        </li>
-      </ul>
+  <div class="bg-surface border border-border">
+    <div class="px-4 py-3 border-b border-border">
+      <p class="text-[10px] text-muted uppercase tracking-wider font-medium">
+        <i class="bi bi-cpu mr-1"></i>Sonde active
+      </p>
+    </div>
+    <div class="divide-y divide-border/50">
+      {% for label, value in [
+        ('Nom', sensor.name),
+        ('Type', sensor.sensor_type),
+        ('Localisation', sensor.location or '—'),
+        ('Raspberry ID', sensor.raspberry_id or '—'),
+      ] %}
+      <div class="flex items-center justify-between px-4 py-2.5">
+        <span class="text-[10px] text-muted uppercase tracking-wider">{{ label }}</span>
+        <span class="text-sm text-[#F5F5F5]">{{ value }}</span>
+      </div>
+      {% endfor %}
+      <div class="flex items-center justify-between px-4 py-2.5">
+        <span class="text-[10px] text-muted uppercase tracking-wider">Statut</span>
+        <span class="text-[10px] uppercase tracking-wider text-green-400 border border-green-700 px-1.5 py-0.5">Actif</span>
+      </div>
     </div>
   </div>
 
   <!-- Dernière mesure -->
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-header"><i class="bi bi-clock me-1"></i>Dernière mesure</div>
-      <div class="card-body text-center">
-        {% if latest_reading %}
+  <div class="bg-surface border border-border">
+    <div class="px-4 py-3 border-b border-border">
+      <p class="text-[10px] text-muted uppercase tracking-wider font-medium">
+        <i class="bi bi-clock mr-1"></i>Dernière mesure
+      </p>
+    </div>
+    <div class="p-5 text-center">
+      {% if latest_reading %}
+        {% set temp = latest_reading.temperature | float %}
+        {% set hum = latest_reading.humidity | float %}
 
-          <!-- Température -->
-          {% set temp = latest_reading.temperature | float %}
-          {% if temp > thresholds.temp_max or temp < thresholds.temp_min %}
-          <div class="alert alert-danger py-1 mb-2 small">
-            <i class="bi bi-exclamation-circle me-1"></i>Température hors seuils !
-          </div>
-          {% endif %}
-          <div class="mb-3">
-            <p class="text-secondary small mb-0">Température</p>
-            <h2 class="fw-bold" id="live-temp"
-                style="color: {% if temp > thresholds.temp_max or temp < thresholds.temp_min %}var(--bs-danger){% else %}var(--bs-info){% endif %}">
-              {{ temp }}°C
-            </h2>
-            <small class="text-secondary">Seuils : {{ thresholds.temp_min }}°C – {{ thresholds.temp_max }}°C</small>
-          </div>
-
-          <!-- Humidité -->
-          {% set hum = latest_reading.humidity | float %}
-          {% if hum > thresholds.hum_max or hum < thresholds.hum_min %}
-          <div class="alert alert-warning py-1 mb-2 small">
-            <i class="bi bi-exclamation-triangle me-1"></i>Humidité hors seuils !
-          </div>
-          {% endif %}
-          <div>
-            <p class="text-secondary small mb-0">Humidité</p>
-            <h2 class="fw-bold" id="live-hum"
-                style="color: {% if hum > thresholds.hum_max or hum < thresholds.hum_min %}var(--bs-warning){% else %}var(--bs-primary){% endif %}">
-              {{ hum }}%
-            </h2>
-            <small class="text-secondary">Seuils : {{ thresholds.hum_min }}% – {{ thresholds.hum_max }}%</small>
-          </div>
-
-          <p class="text-secondary small mt-3 mb-0">
-            <i class="bi bi-clock me-1"></i>
-            {{ latest_reading.recorded_at.strftime('%d/%m/%Y à %H:%M:%S') if latest_reading.recorded_at else '—' }}
-          </p>
-
-        {% else %}
-          <p class="text-secondary mb-0">Aucune mesure disponible.<br>En attente de données du RPi5.</p>
+        {% if temp > thresholds.temp_max or temp < thresholds.temp_min %}
+        <div class="border border-red-800 bg-red-950/30 px-3 py-2 text-xs text-red-300 mb-4">
+          <i class="bi bi-exclamation-circle mr-1"></i>Température hors seuils
+        </div>
         {% endif %}
-      </div>
+
+        <div class="mb-4">
+          <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Température</p>
+          <p class="font-title text-4xl {% if temp > thresholds.temp_max or temp < thresholds.temp_min %}text-red-400{% else %}text-[#F5F5F5]{% endif %}"
+             id="live-temp">{{ temp }}°C</p>
+          <p class="text-[10px] text-muted mt-1">{{ thresholds.temp_min }}°C – {{ thresholds.temp_max }}°C</p>
+        </div>
+
+        {% if hum > thresholds.hum_max or hum < thresholds.hum_min %}
+        <div class="border border-yellow-800 bg-yellow-950/30 px-3 py-2 text-xs text-yellow-300 mb-4">
+          <i class="bi bi-exclamation-triangle mr-1"></i>Humidité hors seuils
+        </div>
+        {% endif %}
+
+        <div class="mb-4">
+          <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Humidité</p>
+          <p class="font-title text-4xl {% if hum > thresholds.hum_max or hum < thresholds.hum_min %}text-yellow-400{% else %}text-[#F5F5F5]{% endif %}"
+             id="live-hum">{{ hum }}%</p>
+          <p class="text-[10px] text-muted mt-1">{{ thresholds.hum_min }}% – {{ thresholds.hum_max }}%</p>
+        </div>
+
+        <p class="text-xs text-muted">
+          {{ latest_reading.recorded_at.strftime('%d/%m/%Y à %H:%M:%S') if latest_reading.recorded_at else '—' }}
+        </p>
+      {% else %}
+        <p class="text-sm text-muted py-4">En attente de données du RPi5.</p>
+      {% endif %}
     </div>
   </div>
 
-  <!-- Seuils configurés -->
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-header"><i class="bi bi-sliders me-1"></i>Seuils d'alerte</div>
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item d-flex justify-content-between">
-          <span class="text-secondary small">Temp. max</span>
-          <span class="badge bg-danger">{{ thresholds.temp_max }}°C</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between">
-          <span class="text-secondary small">Temp. min</span>
-          <span class="badge bg-info text-dark">{{ thresholds.temp_min }}°C</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between">
-          <span class="text-secondary small">Hum. max</span>
-          <span class="badge bg-warning text-dark">{{ thresholds.hum_max }}%</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between">
-          <span class="text-secondary small">Hum. min</span>
-          <span class="badge bg-secondary">{{ thresholds.hum_min }}%</span>
-        </li>
-      </ul>
-      <div class="card-footer">
-        {% if current_user.has_role('admin') %}
-        <a href="{{ url_for('admin.settings') }}" class="btn btn-outline-secondary btn-sm w-100">
-          <i class="bi bi-gear me-1"></i>Modifier les seuils
-        </a>
-        {% else %}
-        <small class="text-secondary">Modification réservée à l'administrateur.</small>
-        {% endif %}
+  <!-- Seuils -->
+  <div class="bg-surface border border-border">
+    <div class="px-4 py-3 border-b border-border">
+      <p class="text-[10px] text-muted uppercase tracking-wider font-medium">
+        <i class="bi bi-sliders mr-1"></i>Seuils d'alerte
+      </p>
+    </div>
+    <div class="divide-y divide-border/50">
+      {% for label, val, color in [
+        ('Temp. max', thresholds.temp_max|string + '°C', 'text-red-400 border-red-700'),
+        ('Temp. min', thresholds.temp_min|string + '°C', 'text-blue-400 border-blue-700'),
+        ('Hum. max', thresholds.hum_max|string + '%', 'text-yellow-400 border-yellow-700'),
+        ('Hum. min', thresholds.hum_min|string + '%', 'text-muted border-border'),
+      ] %}
+      <div class="flex items-center justify-between px-4 py-3">
+        <span class="text-[10px] text-muted uppercase tracking-wider">{{ label }}</span>
+        <span class="text-[10px] uppercase tracking-wider border px-1.5 py-0.5 {{ color }}">{{ val }}</span>
       </div>
+      {% endfor %}
+    </div>
+    <div class="px-4 py-3 border-t border-border">
+      {% if current_user.has_role('admin') %}
+      <a href="{{ url_for('admin.settings') }}"
+         class="block text-center border border-border text-[#F5F5F5] text-xs py-2 hover:border-accent transition-colors duration-200 uppercase tracking-wider">
+        <i class="bi bi-gear mr-1"></i>Modifier les seuils
+      </a>
+      {% else %}
+      <p class="text-[10px] text-muted text-center">Modification réservée à l'admin.</p>
+      {% endif %}
     </div>
   </div>
 
 </div>
 
-<!-- ── Graphique historique 24h ──────────────────────────────────────── -->
-<div class="card">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <span><i class="bi bi-graph-up me-1"></i>Historique 24 heures</span>
-    <small class="text-secondary" id="chart-status">Chargement…</small>
+<!-- ── Graphique 24h ────────────────────────────────────────────────────────── -->
+<div class="bg-surface border border-border">
+  <div class="flex items-center justify-between px-4 py-3 border-b border-border">
+    <p class="text-[10px] text-muted uppercase tracking-wider font-medium">
+      <i class="bi bi-graph-up mr-1"></i>Historique 24 heures
+    </p>
+    <p class="text-xs text-muted" id="chart-status">Chargement…</p>
   </div>
-  <div class="card-body">
-    <canvas id="iotChart" style="max-height:320px;"></canvas>
+  <div class="p-4">
+    <canvas id="iotChart" style="max-height: 300px;"></canvas>
   </div>
 </div>
 
@@ -147,8 +144,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-  const IOT_HISTORY_JSON = {{ history_json | safe }};
-</script>
+<script>const IOT_HISTORY_JSON = {{ history_json | safe }};</script>
 <script src="{{ url_for('static', filename='js/iot.js') }}"></script>
 {% endblock %}

@@ -1,122 +1,144 @@
 <!DOCTYPE html>
-<html lang="fr" data-bs-theme="dark">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Supervision{% endblock %} — Deletec</title>
+  <title>{% block title %}Supervision{% endblock %} — SOC Deletec</title>
 
-  <!-- Bootstrap 5.3 dark -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+
   <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <!-- Styles personnalisés -->
-  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Tailwind Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:      '#0A0A0A',
+            surface: '#141414',
+            border:  '#262626',
+            accent:  '#E8FF47',
+            muted:   '#6B6B6B',
+          },
+          fontFamily: {
+            title: ['Syne', 'sans-serif'],
+            body:  ['DM Sans', 'sans-serif'],
+          },
+          borderRadius: {
+            DEFAULT: '2px',
+            sm: '2px', md: '2px', lg: '2px', xl: '2px', '2xl': '2px',
+          },
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
-<body>
+<body class="bg-bg text-[#F5F5F5] font-body antialiased">
 
-<!-- ── Navbar ──────────────────────────────────────────────────────────── -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary px-3">
-  <a class="navbar-brand fw-bold" href="{{ url_for('dashboard.dashboard') }}">
-    <i class="bi bi-shield-shaded text-primary me-1"></i>Supervision
-  </a>
+{% if current_user.is_authenticated %}
+<div class="flex min-h-screen">
 
-  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-    <span class="navbar-toggler-icon"></span>
-  </button>
+  <!-- ── Sidebar ─────────────────────────────────────────────────────── -->
+  <nav class="fixed top-0 left-0 bottom-0 w-56 bg-surface border-r border-border flex flex-col z-20">
 
-  <div class="collapse navbar-collapse" id="navbarContent">
-    <ul class="navbar-nav ms-auto align-items-lg-center gap-2">
-      {% if current_user.is_authenticated %}
-      <li class="nav-item">
-        <span class="navbar-text text-secondary small">
-          <i class="bi bi-person-circle me-1"></i>{{ current_user.username }}
-          <span class="badge bg-secondary ms-1">{{ current_user.role.name }}</span>
-        </span>
-      </li>
-      <li class="nav-item">
-        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('auth.logout') }}">
-          <i class="bi bi-box-arrow-right me-1"></i>Déconnexion
-        </a>
-      </li>
-      {% endif %}
-    </ul>
-  </div>
-</nav>
+    <div class="px-5 py-5 border-b border-border shrink-0">
+      <p class="font-title text-lg leading-none">
+        <span class="text-accent">SOC</span><span class="text-[#F5F5F5]"> Deletec</span>
+      </p>
+      <p class="text-[10px] text-muted mt-1 uppercase tracking-widest">Supervision hybride</p>
+    </div>
 
-<!-- ── Layout principal ─────────────────────────────────────────────────── -->
-<div class="d-flex" style="min-height: calc(100vh - 56px);">
+    <div class="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
+      {% set ep = request.endpoint %}
 
-  <!-- Sidebar -->
-  {% if current_user.is_authenticated %}
-  <nav class="sidebar bg-dark border-end border-secondary d-flex flex-column p-3" style="width:220px; min-width:220px;">
-    <ul class="nav nav-pills flex-column gap-1">
-
-      <li class="nav-item">
-        <a class="nav-link {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}"
-           href="{{ url_for('dashboard.dashboard') }}">
-          <i class="bi bi-speedometer2 me-2"></i>Dashboard
-        </a>
-      </li>
+      <a href="{{ url_for('dashboard.dashboard') }}"
+         class="flex items-center gap-3 px-3 py-2 text-sm transition-all duration-200 border
+                {% if ep == 'dashboard.dashboard' %}border-accent text-accent{% else %}border-transparent text-muted hover:text-[#F5F5F5] hover:border-border{% endif %}">
+        <i class="bi bi-speedometer2 w-4 text-center text-base"></i>Dashboard
+      </a>
 
       {% if current_user.has_role('admin') or current_user.has_role('analyst') %}
-      <li class="nav-item">
-        <a class="nav-link {% if request.blueprint == 'incidents' %}active{% endif %}"
-           href="{{ url_for('incidents.list_incidents') }}">
-          <i class="bi bi-exclamation-triangle me-2"></i>Incidents
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link {% if request.endpoint == 'security.security' %}active{% endif %}"
-           href="{{ url_for('security.security') }}">
-          <i class="bi bi-shield-exclamation me-2"></i>Sécurité
-        </a>
-      </li>
+      <a href="{{ url_for('security.security') }}"
+         class="flex items-center gap-3 px-3 py-2 text-sm transition-all duration-200 border
+                {% if ep == 'security.security' %}border-accent text-accent{% else %}border-transparent text-muted hover:text-[#F5F5F5] hover:border-border{% endif %}">
+        <i class="bi bi-shield-exclamation w-4 text-center text-base"></i>Sécurité
+      </a>
+
+      <a href="{{ url_for('incidents.list_incidents') }}"
+         class="flex items-center gap-3 px-3 py-2 text-sm transition-all duration-200 border
+                {% if ep and 'incidents' in ep %}border-accent text-accent{% else %}border-transparent text-muted hover:text-[#F5F5F5] hover:border-border{% endif %}">
+        <i class="bi bi-exclamation-triangle w-4 text-center text-base"></i>Incidents
+      </a>
       {% endif %}
 
-      <li class="nav-item">
-        <a class="nav-link {% if request.endpoint == 'iot.iot' %}active{% endif %}"
-           href="{{ url_for('iot.iot') }}">
-          <i class="bi bi-thermometer-half me-2"></i>IoT
-        </a>
-      </li>
+      <a href="{{ url_for('iot.iot') }}"
+         class="flex items-center gap-3 px-3 py-2 text-sm transition-all duration-200 border
+                {% if ep == 'iot.iot' %}border-accent text-accent{% else %}border-transparent text-muted hover:text-[#F5F5F5] hover:border-border{% endif %}">
+        <i class="bi bi-thermometer-half w-4 text-center text-base"></i>IoT
+      </a>
 
       {% if current_user.has_role('admin') %}
-      <li class="nav-item mt-auto pt-3 border-top border-secondary">
-        <a class="nav-link {% if request.blueprint == 'admin' %}active{% endif %}"
-           href="{{ url_for('admin.settings') }}">
-          <i class="bi bi-gear me-2"></i>Administration
-        </a>
-      </li>
+      <a href="{{ url_for('admin.settings') }}"
+         class="flex items-center gap-3 px-3 py-2 text-sm transition-all duration-200 border
+                {% if ep and 'admin' in ep %}border-accent text-accent{% else %}border-transparent text-muted hover:text-[#F5F5F5] hover:border-border{% endif %}">
+        <i class="bi bi-gear w-4 text-center text-base"></i>Admin
+      </a>
       {% endif %}
+    </div>
 
-    </ul>
+    <div class="shrink-0 px-2 pb-3 pt-2 border-t border-border">
+      <div class="px-3 py-2 mb-1">
+        <p class="text-[10px] text-muted uppercase tracking-wider">Connecté</p>
+        <p class="text-sm font-medium text-[#F5F5F5] truncate">{{ current_user.username }}</p>
+        {% if current_user.role %}
+        <p class="text-[10px] text-muted mt-0.5">{{ current_user.role.name }}</p>
+        {% endif %}
+      </div>
+      <a href="{{ url_for('auth.logout') }}"
+         class="flex items-center gap-3 px-3 py-2 text-sm text-muted border border-transparent transition-all duration-200 hover:text-[#F5F5F5] hover:border-border">
+        <i class="bi bi-box-arrow-right w-4 text-center text-base"></i>Déconnexion
+      </a>
+    </div>
   </nav>
-  {% endif %}
 
-  <!-- Contenu principal -->
-  <main class="flex-grow-1 p-4">
+  <!-- ── Contenu principal ─────────────────────────────────────────────── -->
+  <main class="ml-56 flex-1 p-8 min-w-0">
 
-    <!-- Flash messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
+      <div class="mb-6 space-y-2">
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
+        <div class="flex items-start gap-3 px-4 py-3 border text-sm
+          {% if category == 'success' %}border-green-700 bg-green-950/50 text-green-300
+          {% elif category == 'danger' %}border-red-700 bg-red-950/50 text-red-300
+          {% elif category == 'warning' %}border-yellow-700 bg-yellow-950/50 text-yellow-300
+          {% else %}border-border bg-surface text-[#F5F5F5]{% endif %}">
+          <i class="bi {% if category == 'success' %}bi-check-circle{% elif category == 'danger' %}bi-x-circle{% elif category == 'warning' %}bi-exclamation-triangle{% else %}bi-info-circle{% endif %} mt-0.5 shrink-0 text-base"></i>
+          <span>{{ message }}</span>
+        </div>
         {% endfor %}
+      </div>
       {% endif %}
     {% endwith %}
 
     {% block content %}{% endblock %}
-
   </main>
 </div>
 
-<!-- ── Scripts ──────────────────────────────────────────────────────────── -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+{% else %}
+  {% block content %}{% endblock %}
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 {% block extra_js %}{% endblock %}
 
 </body>

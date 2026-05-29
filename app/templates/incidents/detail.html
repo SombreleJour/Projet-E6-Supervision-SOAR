@@ -3,173 +3,184 @@
 
 {% block content %}
 
-<!-- ── En-tête ────────────────────────────────────────────────────────── -->
-<div class="d-flex align-items-center mb-3 gap-3">
-  <a href="{{ url_for('incidents.list_incidents') }}" class="btn btn-sm btn-outline-secondary">
+<!-- En-tête -->
+<div class="flex items-start gap-4 mb-8">
+  <a href="{{ url_for('incidents.list_incidents') }}"
+     class="border border-border text-muted px-3 py-2 text-sm hover:border-accent hover:text-accent transition-colors duration-200 shrink-0">
     <i class="bi bi-arrow-left"></i>
   </a>
-  <div>
-    <h5 class="mb-0">
-      <span class="text-secondary me-2">#{{ incident.id }}</span>{{ incident.title }}
-    </h5>
-    <div class="d-flex gap-2 mt-1 flex-wrap">
+  <div class="min-w-0">
+    <div class="flex flex-wrap items-center gap-2 mb-2">
+      <span class="text-muted text-sm">#{{ incident.id }}</span>
       <span class="badge crit-{{ incident.criticality }}">{{ incident.criticality }}</span>
       <span class="badge stat-{{ incident.status }}">{{ incident.status }}</span>
-      <span class="badge bg-secondary">{{ incident.source }}</span>
-      {% if incident.category %}<span class="badge bg-dark border border-secondary">{{ incident.category }}</span>{% endif %}
+      <span class="text-[10px] uppercase tracking-wider text-muted border border-border px-1.5 py-0.5">{{ incident.source }}</span>
+      {% if incident.category %}
+      <span class="text-[10px] uppercase tracking-wider text-muted border border-border px-1.5 py-0.5">{{ incident.category }}</span>
+      {% endif %}
     </div>
+    <h1 class="font-title text-xl text-[#F5F5F5] leading-tight">{{ incident.title }}</h1>
   </div>
 </div>
 
-<div class="row g-3">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-  <!-- ── Colonne principale ──────────────────────────────────────────── -->
-  <div class="col-lg-8">
+  <!-- ── Colonne principale ────────────────────────────────────────────── -->
+  <div class="lg:col-span-2 space-y-4">
 
     <!-- Description -->
-    <div class="card mb-3">
-      <div class="card-header">Description</div>
-      <div class="card-body">
-        <pre class="mb-0 text-body" style="white-space:pre-wrap; font-family:inherit;">{{ incident.description or 'Aucune description.' }}</pre>
+    <div class="bg-surface border border-border">
+      <div class="px-4 py-3 border-b border-border">
+        <p class="text-[10px] text-muted uppercase tracking-wider font-medium">Description</p>
+      </div>
+      <div class="p-4">
+        <pre class="text-sm text-[#F5F5F5] whitespace-pre-wrap font-body leading-relaxed">{{ incident.description or 'Aucune description.' }}</pre>
       </div>
     </div>
 
     <!-- Commentaires -->
-    <div class="card mb-3">
-      <div class="card-header"><i class="bi bi-chat-left-text me-1"></i>Commentaires</div>
-      <div class="card-body p-0">
-        {% for comment in incident.comments %}
-        <div class="p-3 border-bottom border-secondary">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <span class="fw-semibold small">{{ comment.author.username }}</span>
-            <span class="text-secondary small">
-              {{ comment.created_at.strftime('%d/%m/%Y %H:%M') if comment.created_at else '—' }}
-            </span>
-          </div>
-          <p class="mb-0 small">{{ comment.comment }}</p>
-        </div>
-        {% else %}
-        <p class="text-secondary p-3 mb-0">Aucun commentaire.</p>
-        {% endfor %}
+    <div class="bg-surface border border-border">
+      <div class="px-4 py-3 border-b border-border">
+        <p class="text-[10px] text-muted uppercase tracking-wider font-medium">
+          <i class="bi bi-chat-left-text mr-1"></i>Commentaires
+        </p>
       </div>
+      {% for comment in incident.comments %}
+      <div class="px-4 py-4 border-b border-border/50">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium text-[#F5F5F5]">{{ comment.author.username }}</span>
+          <span class="text-xs text-muted">{{ comment.created_at.strftime('%d/%m/%Y %H:%M') if comment.created_at else '—' }}</span>
+        </div>
+        <p class="text-sm text-[#F5F5F5]/80 leading-relaxed">{{ comment.comment }}</p>
+      </div>
+      {% else %}
+      <p class="px-4 py-6 text-muted text-sm">Aucun commentaire.</p>
+      {% endfor %}
     </div>
 
     <!-- Formulaire commentaire -->
-    <div class="card">
-      <div class="card-body">
+    <div class="bg-surface border border-border">
+      <div class="px-4 py-3 border-b border-border">
+        <p class="text-[10px] text-muted uppercase tracking-wider font-medium">Ajouter un commentaire</p>
+      </div>
+      <div class="p-4">
         <form method="POST" action="{{ url_for('incidents.add_comment', id=incident.id) }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <div class="mb-2">
-            <textarea class="form-control form-control-sm" name="comment" rows="3"
-                      placeholder="Ajouter un commentaire…" required></textarea>
-          </div>
-          <button type="submit" class="btn btn-secondary btn-sm">
-            <i class="bi bi-send me-1"></i>Commenter
+          <textarea name="comment" rows="3" required placeholder="Votre commentaire…"
+                    class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 placeholder:text-muted resize-none mb-3"></textarea>
+          <button type="submit"
+                  class="bg-accent text-bg text-xs font-title font-bold px-4 py-2 uppercase tracking-widest hover:bg-[#d4eb3d] transition-colors duration-200">
+            <i class="bi bi-send mr-1"></i>Commenter
           </button>
         </form>
       </div>
     </div>
-
   </div>
 
-  <!-- ── Colonne latérale ─────────────────────────────────────────────── -->
-  <div class="col-lg-4">
+  <!-- ── Colonne latérale ──────────────────────────────────────────────── -->
+  <div class="space-y-4">
 
     <!-- Informations -->
-    <div class="card mb-3">
-      <div class="card-header">Informations</div>
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item d-flex justify-content-between">
-          <span class="text-secondary small">Asset</span>
-          <span class="small">{{ incident.asset.name if incident.asset else '—' }}</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between">
-          <span class="text-secondary small">Créé par</span>
-          <span class="small">{{ incident.creator.username if incident.creator else '—' }}</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between">
-          <span class="text-secondary small">Assigné à</span>
-          <span class="small">{{ incident.assignee.username if incident.assignee else '—' }}</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between">
-          <span class="text-secondary small">Créé le</span>
-          <span class="small">{{ incident.created_at.strftime('%d/%m/%Y %H:%M') if incident.created_at else '—' }}</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between">
-          <span class="text-secondary small">Mis à jour</span>
-          <span class="small">{{ incident.updated_at.strftime('%d/%m/%Y %H:%M') if incident.updated_at else '—' }}</span>
-        </li>
+    <div class="bg-surface border border-border">
+      <div class="px-4 py-3 border-b border-border">
+        <p class="text-[10px] text-muted uppercase tracking-wider font-medium">Informations</p>
+      </div>
+      <div class="divide-y divide-border/50">
+        {% for label, value in [
+          ('Asset', incident.asset.name if incident.asset else '—'),
+          ('Créé par', incident.creator.username if incident.creator else '—'),
+          ('Assigné à', incident.assignee.username if incident.assignee else '—'),
+          ('Créé le', incident.created_at.strftime('%d/%m/%Y %H:%M') if incident.created_at else '—'),
+          ('Mis à jour', incident.updated_at.strftime('%d/%m/%Y %H:%M') if incident.updated_at else '—'),
+        ] %}
+        <div class="flex items-center justify-between px-4 py-2.5">
+          <span class="text-[10px] text-muted uppercase tracking-wider">{{ label }}</span>
+          <span class="text-sm text-[#F5F5F5]">{{ value }}</span>
+        </div>
+        {% endfor %}
         {% if incident.external_id %}
-        <li class="list-group-item d-flex justify-content-between">
-          <span class="text-secondary small">ID externe</span>
-          <code class="small">{{ incident.external_id }}</code>
-        </li>
+        <div class="flex items-center justify-between px-4 py-2.5">
+          <span class="text-[10px] text-muted uppercase tracking-wider">ID externe</span>
+          <code class="text-xs text-accent">{{ incident.external_id }}</code>
+        </div>
         {% endif %}
-      </ul>
+      </div>
     </div>
 
     {% if current_user.has_role('admin') or current_user.has_role('analyst') %}
 
     <!-- Changer statut -->
-    <div class="card mb-3">
-      <div class="card-header">Changer le statut</div>
-      <div class="card-body">
-        <form method="POST" action="{{ url_for('incidents.change_status', id=incident.id) }}">
+    <div class="bg-surface border border-border">
+      <div class="px-4 py-3 border-b border-border">
+        <p class="text-[10px] text-muted uppercase tracking-wider font-medium">Changer le statut</p>
+      </div>
+      <div class="p-4">
+        <form method="POST" action="{{ url_for('incidents.change_status', id=incident.id) }}" class="flex gap-2">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <div class="input-group input-group-sm">
-            <select name="status" class="form-select">
-              {% for s in ['open', 'in_progress', 'closed'] %}
-              <option value="{{ s }}" {% if s == incident.status %}selected{% endif %}>{{ s }}</option>
-              {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-secondary">Appliquer</button>
-          </div>
+          <select name="status"
+                  class="flex-1 bg-bg border border-border text-[#F5F5F5] px-3 py-2 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+            {% for s in ['open', 'in_progress', 'closed'] %}
+            <option value="{{ s }}" {% if s == incident.status %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit"
+                  class="border border-border text-[#F5F5F5] text-xs px-3 py-2 hover:border-accent transition-colors duration-200 uppercase tracking-wider shrink-0">
+            OK
+          </button>
         </form>
       </div>
     </div>
 
     <!-- Assigner -->
-    <div class="card mb-3">
-      <div class="card-header">Assigner à</div>
-      <div class="card-body">
-        <form method="POST" action="{{ url_for('incidents.assign_incident', id=incident.id) }}">
+    <div class="bg-surface border border-border">
+      <div class="px-4 py-3 border-b border-border">
+        <p class="text-[10px] text-muted uppercase tracking-wider font-medium">Assigner à</p>
+      </div>
+      <div class="p-4">
+        <form method="POST" action="{{ url_for('incidents.assign_incident', id=incident.id) }}" class="flex gap-2">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <div class="input-group input-group-sm">
-            <select name="user_id" class="form-select">
-              <option value="">— Aucun —</option>
-              {% for user in users %}
-              <option value="{{ user.id }}" {% if incident.assigned_to == user.id %}selected{% endif %}>
-                {{ user.username }}
-              </option>
-              {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-secondary">Assigner</button>
-          </div>
+          <select name="user_id"
+                  class="flex-1 bg-bg border border-border text-[#F5F5F5] px-3 py-2 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+            <option value="">— Aucun —</option>
+            {% for user in users %}
+            <option value="{{ user.id }}" {% if incident.assigned_to == user.id %}selected{% endif %}>
+              {{ user.username }}
+            </option>
+            {% endfor %}
+          </select>
+          <button type="submit"
+                  class="border border-border text-[#F5F5F5] text-xs px-3 py-2 hover:border-accent transition-colors duration-200 uppercase tracking-wider shrink-0">
+            OK
+          </button>
         </form>
       </div>
     </div>
 
     <!-- Actions SOAR -->
-    <div class="card border-danger">
-      <div class="card-header text-danger">
-        <i class="bi bi-lightning-charge me-1"></i>Actions SOAR
+    <div class="bg-surface border border-red-900/50">
+      <div class="px-4 py-3 border-b border-red-900/50">
+        <p class="text-[10px] text-red-400 uppercase tracking-wider font-medium">
+          <i class="bi bi-lightning-charge mr-1"></i>Actions SOAR
+        </p>
       </div>
-      <div class="card-body d-flex flex-column gap-2">
-
-        <!-- Isolation hôte -->
-        <button type="button" class="btn btn-danger btn-sm"
-                {% if not incident.asset %}disabled title="Aucun asset lié"{% endif %}
-                data-bs-toggle="modal" data-bs-target="#modalIsolate">
-          <i class="bi bi-shield-x me-1"></i>Isoler l'hôte
+      <div class="p-4 space-y-2">
+        <button type="button"
+                onclick="document.getElementById('dialogIsolate').showModal()"
+                {% if not incident.asset %}disabled{% endif %}
+                class="w-full border border-red-700 text-red-400 text-xs py-2.5 uppercase tracking-wider
+                       transition-colors duration-200 hover:bg-red-950/50 disabled:opacity-40 disabled:cursor-not-allowed">
+          <i class="bi bi-shield-x mr-2"></i>Isoler l'hôte
         </button>
-
-        <!-- Blocage IP -->
-        <button type="button" class="btn btn-warning btn-sm text-dark"
-                {% if not incident.asset %}disabled title="Aucun asset lié"{% endif %}
-                data-bs-toggle="modal" data-bs-target="#modalBlockIP">
-          <i class="bi bi-slash-circle me-1"></i>Bloquer l'IP
+        <button type="button"
+                onclick="document.getElementById('dialogBlockIP').showModal()"
+                {% if not incident.asset %}disabled{% endif %}
+                class="w-full border border-yellow-700 text-yellow-400 text-xs py-2.5 uppercase tracking-wider
+                       transition-colors duration-200 hover:bg-yellow-950/50 disabled:opacity-40 disabled:cursor-not-allowed">
+          <i class="bi bi-slash-circle mr-2"></i>Bloquer l'IP
         </button>
-
+        {% if not incident.asset %}
+        <p class="text-[10px] text-muted text-center">Aucun asset lié</p>
+        {% endif %}
       </div>
     </div>
 
@@ -177,74 +188,74 @@
   </div>
 </div>
 
-<!-- ── Modals SOAR ─────────────────────────────────────────────────────── -->
+<!-- ── Dialogs SOAR (natifs HTML) ─────────────────────────────────────────── -->
 {% if current_user.has_role('admin') or current_user.has_role('analyst') %}
 
-<!-- Modal isolation -->
-<div class="modal fade" id="modalIsolate" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header border-danger">
-        <h5 class="modal-title text-danger"><i class="bi bi-shield-x me-2"></i>Confirmer l'isolation</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p>Vous allez déclencher l'isolation réseau via Wazuh Active Response pour :</p>
-        <ul>
-          <li><strong>Asset :</strong> {{ incident.asset.name if incident.asset else '—' }}</li>
-          <li><strong>IP :</strong> {{ incident.asset.ip_address if incident.asset else '—' }}</li>
-        </ul>
-        <div class="alert alert-danger mb-0">
-          <i class="bi bi-exclamation-triangle me-1"></i>
-          Cette action coupe l'accès réseau de la machine cible. Elle est irréversible sans intervention manuelle.
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-        <form method="POST" action="{{ url_for('incidents.trigger_soar', id=incident.id) }}" class="d-inline">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="action" value="isolate">
-          <button type="submit" class="btn btn-danger">
-            <i class="bi bi-shield-x me-1"></i>Confirmer l'isolation
-          </button>
-        </form>
-      </div>
+<dialog id="dialogIsolate">
+  <div class="px-6 py-5 border-b border-border">
+    <h2 class="font-title text-lg text-red-400">
+      <i class="bi bi-shield-x mr-2"></i>Confirmer l'isolation
+    </h2>
+  </div>
+  <div class="px-6 py-5 space-y-4">
+    <p class="text-sm text-[#F5F5F5]">Vous allez déclencher l'isolation réseau via Wazuh Active Response pour :</p>
+    <ul class="space-y-1 text-sm text-muted">
+      <li><span class="text-[#F5F5F5]">Asset :</span> {{ incident.asset.name if incident.asset else '—' }}</li>
+      <li><span class="text-[#F5F5F5]">IP :</span> {{ incident.asset.ip_address if incident.asset else '—' }}</li>
+    </ul>
+    <div class="border border-red-800 bg-red-950/40 px-4 py-3 text-sm text-red-300">
+      <i class="bi bi-exclamation-triangle mr-2"></i>
+      Cette action coupe l'accès réseau de la machine cible. Irréversible sans intervention manuelle.
     </div>
   </div>
-</div>
+  <div class="px-6 py-4 border-t border-border flex justify-end gap-3">
+    <button type="button" onclick="document.getElementById('dialogIsolate').close()"
+            class="border border-border text-[#F5F5F5] text-xs px-4 py-2 hover:border-muted transition-colors duration-200 uppercase tracking-wider">
+      Annuler
+    </button>
+    <form method="POST" action="{{ url_for('incidents.trigger_soar', id=incident.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="isolate">
+      <button type="submit"
+              class="bg-red-700 text-white text-xs px-4 py-2 uppercase tracking-wider hover:bg-red-600 transition-colors duration-200">
+        <i class="bi bi-shield-x mr-1"></i>Confirmer
+      </button>
+    </form>
+  </div>
+</dialog>
 
-<!-- Modal blocage IP -->
-<div class="modal fade" id="modalBlockIP" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header border-warning">
-        <h5 class="modal-title text-warning"><i class="bi bi-slash-circle me-2"></i>Confirmer le blocage IP</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p>Vous allez ajouter une règle de blocage sur pfSense pour :</p>
-        <ul>
-          <li><strong>Asset :</strong> {{ incident.asset.name if incident.asset else '—' }}</li>
-          <li><strong>IP :</strong> {{ incident.asset.ip_address if incident.asset else '—' }}</li>
-        </ul>
-        <div class="alert alert-warning mb-0">
-          <i class="bi bi-exclamation-triangle me-1"></i>
-          Cette action bloque tout trafic entrant/sortant depuis cette IP au niveau du pare-feu.
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-        <form method="POST" action="{{ url_for('incidents.trigger_soar', id=incident.id) }}" class="d-inline">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="action" value="block_ip">
-          <button type="submit" class="btn btn-warning text-dark">
-            <i class="bi bi-slash-circle me-1"></i>Confirmer le blocage
-          </button>
-        </form>
-      </div>
+<dialog id="dialogBlockIP">
+  <div class="px-6 py-5 border-b border-border">
+    <h2 class="font-title text-lg text-yellow-400">
+      <i class="bi bi-slash-circle mr-2"></i>Confirmer le blocage IP
+    </h2>
+  </div>
+  <div class="px-6 py-5 space-y-4">
+    <p class="text-sm text-[#F5F5F5]">Vous allez ajouter une règle de blocage sur pfSense pour :</p>
+    <ul class="space-y-1 text-sm text-muted">
+      <li><span class="text-[#F5F5F5]">Asset :</span> {{ incident.asset.name if incident.asset else '—' }}</li>
+      <li><span class="text-[#F5F5F5]">IP :</span> {{ incident.asset.ip_address if incident.asset else '—' }}</li>
+    </ul>
+    <div class="border border-yellow-800 bg-yellow-950/40 px-4 py-3 text-sm text-yellow-300">
+      <i class="bi bi-exclamation-triangle mr-2"></i>
+      Cette action bloque tout trafic depuis cette IP au niveau du pare-feu.
     </div>
   </div>
-</div>
+  <div class="px-6 py-4 border-t border-border flex justify-end gap-3">
+    <button type="button" onclick="document.getElementById('dialogBlockIP').close()"
+            class="border border-border text-[#F5F5F5] text-xs px-4 py-2 hover:border-muted transition-colors duration-200 uppercase tracking-wider">
+      Annuler
+    </button>
+    <form method="POST" action="{{ url_for('incidents.trigger_soar', id=incident.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="block_ip">
+      <button type="submit"
+              class="bg-yellow-600 text-bg text-xs px-4 py-2 uppercase tracking-wider hover:bg-yellow-500 transition-colors duration-200">
+        <i class="bi bi-slash-circle mr-1"></i>Confirmer
+      </button>
+    </form>
+  </div>
+</dialog>
 
 {% endif %}
 

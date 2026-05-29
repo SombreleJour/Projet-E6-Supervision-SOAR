@@ -2,165 +2,172 @@
 {% block title %}Administration{% endblock %}
 
 {% block content %}
-<h4 class="mb-4"><i class="bi bi-gear me-2 text-secondary"></i>Administration</h4>
+<div class="mb-8">
+  <h1 class="font-title text-2xl text-[#F5F5F5]">Administration</h1>
+  <p class="text-xs text-muted mt-1 uppercase tracking-widest">Système et utilisateurs</p>
+</div>
 
-<!-- ── Informations système ──────────────────────────────────────────── -->
-<div class="card mb-4">
-  <div class="card-header"><i class="bi bi-info-circle me-1"></i>Informations système</div>
-  <div class="card-body">
-    <div class="row g-2">
-      <div class="col-sm-4">
-        <span class="text-secondary small">Version Flask</span><br>
-        <code>{{ system_info.flask_version }}</code>
-      </div>
-      <div class="col-sm-4">
-        <span class="text-secondary small">Version Python</span><br>
-        <code>{{ system_info.python_version }}</code>
-      </div>
-      <div class="col-sm-4">
-        <span class="text-secondary small">Base de données</span><br>
-        <span class="badge {% if system_info.db_status == 'Connecté' %}bg-success{% else %}bg-danger{% endif %}">
-          {{ system_info.db_status }}
-        </span>
-      </div>
+<!-- ── Informations système ───────────────────────────────────────────────── -->
+<div class="bg-surface border border-border mb-6">
+  <div class="px-4 py-3 border-b border-border">
+    <p class="text-[10px] text-muted uppercase tracking-wider font-medium">
+      <i class="bi bi-info-circle mr-1"></i>Informations système
+    </p>
+  </div>
+  <div class="grid grid-cols-3 divide-x divide-border">
+    <div class="px-4 py-4">
+      <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Flask</p>
+      <code class="text-sm text-accent">{{ system_info.flask_version }}</code>
+    </div>
+    <div class="px-4 py-4">
+      <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Python</p>
+      <code class="text-sm text-accent">{{ system_info.python_version }}</code>
+    </div>
+    <div class="px-4 py-4">
+      <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Base de données</p>
+      <span class="text-[10px] uppercase tracking-wider border px-1.5 py-0.5
+        {% if system_info.db_status == 'Connecté' %}text-green-400 border-green-700{% else %}text-red-400 border-red-700{% endif %}">
+        {{ system_info.db_status }}
+      </span>
     </div>
   </div>
 </div>
 
-<!-- ── Seuils d'alerte IoT ─────────────────────────────────────────── -->
-<div class="card mb-4">
-  <div class="card-header"><i class="bi bi-sliders me-1"></i>Seuils d'alerte IoT</div>
-  <div class="card-body">
+<!-- ── Seuils IoT ──────────────────────────────────────────────────────────── -->
+<div class="bg-surface border border-border mb-6">
+  <div class="px-4 py-3 border-b border-border">
+    <p class="text-[10px] text-muted uppercase tracking-wider font-medium">
+      <i class="bi bi-sliders mr-1"></i>Seuils d'alerte IoT
+    </p>
+  </div>
+  <div class="p-6">
     <form method="POST" action="{{ url_for('admin.update_thresholds') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="row g-3">
-        <div class="col-sm-3">
-          <label class="form-label small">Temp. max (°C)</label>
-          <input type="number" step="0.1" class="form-control form-control-sm"
-                 name="temp_max" value="{{ thresholds.temp_max }}">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        {% for label, name, val in [
+          ('Temp. max (°C)', 'temp_max', thresholds.temp_max),
+          ('Temp. min (°C)', 'temp_min', thresholds.temp_min),
+          ('Hum. max (%)', 'hum_max', thresholds.hum_max),
+          ('Hum. min (%)', 'hum_min', thresholds.hum_min),
+        ] %}
+        <div>
+          <label class="block text-[10px] text-muted uppercase tracking-wider mb-2">{{ label }}</label>
+          <input type="number" step="0.1" name="{{ name }}" value="{{ val }}"
+                 class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2 text-sm outline-none focus:border-accent transition-colors duration-200">
         </div>
-        <div class="col-sm-3">
-          <label class="form-label small">Temp. min (°C)</label>
-          <input type="number" step="0.1" class="form-control form-control-sm"
-                 name="temp_min" value="{{ thresholds.temp_min }}">
-        </div>
-        <div class="col-sm-3">
-          <label class="form-label small">Hum. max (%)</label>
-          <input type="number" step="0.1" class="form-control form-control-sm"
-                 name="hum_max" value="{{ thresholds.hum_max }}">
-        </div>
-        <div class="col-sm-3">
-          <label class="form-label small">Hum. min (%)</label>
-          <input type="number" step="0.1" class="form-control form-control-sm"
-                 name="hum_min" value="{{ thresholds.hum_min }}">
-        </div>
+        {% endfor %}
       </div>
-      <div class="mt-3">
-        <button type="submit" class="btn btn-secondary btn-sm">
-          <i class="bi bi-check-lg me-1"></i>Enregistrer les seuils
+      <div class="flex items-center gap-4">
+        <button type="submit"
+                class="bg-accent text-bg text-xs font-title font-bold px-4 py-2 uppercase tracking-widest hover:bg-[#d4eb3d] transition-colors duration-200">
+          <i class="bi bi-check-lg mr-1"></i>Enregistrer
         </button>
-        <small class="text-secondary ms-2">Les seuils sont actifs pour la session en cours.</small>
+        <p class="text-xs text-muted">Seuils actifs pour la session en cours uniquement.</p>
       </div>
     </form>
   </div>
 </div>
 
-<!-- ── Gestion des utilisateurs ──────────────────────────────────────── -->
-<div class="card">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <span><i class="bi bi-people me-1"></i>Utilisateurs</span>
-    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalCreateUser">
-      <i class="bi bi-plus-lg me-1"></i>Nouvel utilisateur
+<!-- ── Utilisateurs ────────────────────────────────────────────────────────── -->
+<div class="bg-surface border border-border">
+  <div class="flex items-center justify-between px-4 py-3 border-b border-border">
+    <p class="text-[10px] text-muted uppercase tracking-wider font-medium">
+      <i class="bi bi-people mr-1"></i>Utilisateurs
+    </p>
+    <button onclick="document.getElementById('dialogCreateUser').showModal()"
+            class="bg-accent text-bg text-[10px] font-title font-bold px-3 py-1.5 uppercase tracking-widest hover:bg-[#d4eb3d] transition-colors duration-200">
+      <i class="bi bi-plus-lg mr-1"></i>Nouvel utilisateur
     </button>
   </div>
-  <div class="card-body p-0">
-    <table class="table table-hover mb-0">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Identifiant</th>
-          <th>Email</th>
-          <th>Rôle</th>
-          <th>Statut</th>
-          <th>Créé le</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for user in users %}
-        <tr>
-          <td class="text-secondary small">{{ user.id }}</td>
-          <td class="fw-semibold">{{ user.username }}</td>
-          <td class="text-secondary small">{{ user.email }}</td>
-          <td><span class="badge bg-secondary">{{ user.role.name }}</span></td>
-          <td>
-            <span class="badge {% if user.is_active %}bg-success{% else %}bg-danger{% endif %}">
-              {% if user.is_active %}Actif{% else %}Désactivé{% endif %}
-            </span>
-          </td>
-          <td class="text-secondary small">
-            {{ user.created_at.strftime('%d/%m/%Y') if user.created_at else '—' }}
-          </td>
-          <td>
-            {% if user.id != current_user.id %}
-            <form method="POST" action="{{ url_for('admin.toggle_user', id=user.id) }}" class="d-inline">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="btn btn-xs btn-sm btn-outline-secondary py-0 px-2">
-                {% if user.is_active %}Désactiver{% else %}Activer{% endif %}
-              </button>
-            </form>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b border-border">
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">#</th>
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Identifiant</th>
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Email</th>
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Rôle</th>
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Statut</th>
+        <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Créé le</th>
+        <th class="px-4 py-2.5"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr class="border-b border-border/50 hover:bg-[#1c1c1c] transition-colors duration-150">
+        <td class="px-4 py-3 text-muted text-xs">{{ user.id }}</td>
+        <td class="px-4 py-3 font-medium text-[#F5F5F5]">{{ user.username }}</td>
+        <td class="px-4 py-3 text-muted text-xs">{{ user.email }}</td>
+        <td class="px-4 py-3">
+          <span class="text-[10px] uppercase tracking-wider text-muted border border-border px-1.5 py-0.5">{{ user.role.name }}</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-[10px] uppercase tracking-wider border px-1.5 py-0.5
+            {% if user.is_active %}text-green-400 border-green-700{% else %}text-red-400 border-red-700{% endif %}">
+            {% if user.is_active %}Actif{% else %}Désactivé{% endif %}
+          </span>
+        </td>
+        <td class="px-4 py-3 text-muted text-xs">
+          {{ user.created_at.strftime('%d/%m/%Y') if user.created_at else '—' }}
+        </td>
+        <td class="px-4 py-3">
+          {% if user.id != current_user.id %}
+          <form method="POST" action="{{ url_for('admin.toggle_user', id=user.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit"
+                    class="text-[10px] uppercase tracking-wider text-muted border border-border px-2 py-1 hover:border-accent hover:text-accent transition-colors duration-200">
+              {% if user.is_active %}Désactiver{% else %}Activer{% endif %}
+            </button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
-<!-- ── Modal création utilisateur ────────────────────────────────────── -->
-<div class="modal fade" id="modalCreateUser" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Nouvel utilisateur</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form method="POST" action="{{ url_for('admin.create_user') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label" for="new-username">Identifiant</label>
-            <input type="text" class="form-control" id="new-username" name="username"
-                   required maxlength="50">
-          </div>
-          <div class="mb-3">
-            <label class="form-label" for="new-email">Email</label>
-            <input type="email" class="form-control" id="new-email" name="email"
-                   required maxlength="120">
-          </div>
-          <div class="mb-3">
-            <label class="form-label" for="new-password">Mot de passe</label>
-            <input type="password" class="form-control" id="new-password" name="password" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label" for="new-role">Rôle</label>
-            <select class="form-select" id="new-role" name="role">
-              {% for role in roles %}
-              <option value="{{ role.name }}">{{ role.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-          <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-lg me-1"></i>Créer
-          </button>
-        </div>
-      </form>
-    </div>
+<!-- ── Dialog création utilisateur ───────────────────────────────────────── -->
+<dialog id="dialogCreateUser">
+  <div class="px-6 py-5 border-b border-border">
+    <h2 class="font-title text-lg text-[#F5F5F5]">
+      <i class="bi bi-person-plus mr-2"></i>Nouvel utilisateur
+    </h2>
   </div>
-</div>
+  <form method="POST" action="{{ url_for('admin.create_user') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="px-6 py-5 space-y-4">
+      {% for label, name, type_, placeholder in [
+        ('Identifiant', 'username', 'text', 'admin2'),
+        ('Email', 'email', 'email', 'user@siem.local'),
+        ('Mot de passe', 'password', 'password', ''),
+      ] %}
+      <div>
+        <label class="block text-[10px] text-muted uppercase tracking-wider mb-2">{{ label }}</label>
+        <input type="{{ type_ }}" name="{{ name }}" required placeholder="{{ placeholder }}"
+               class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 placeholder:text-muted">
+      </div>
+      {% endfor %}
+      <div>
+        <label class="block text-[10px] text-muted uppercase tracking-wider mb-2">Rôle</label>
+        <select name="role"
+                class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+          {% for role in roles %}
+          <option value="{{ role.name }}">{{ role.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-border flex justify-end gap-3">
+      <button type="button" onclick="document.getElementById('dialogCreateUser').close()"
+              class="border border-border text-[#F5F5F5] text-xs px-4 py-2 hover:border-muted transition-colors duration-200 uppercase tracking-wider">
+        Annuler
+      </button>
+      <button type="submit"
+              class="bg-accent text-bg text-xs font-title font-bold px-4 py-2 uppercase tracking-widest hover:bg-[#d4eb3d] transition-colors duration-200">
+        <i class="bi bi-check-lg mr-1"></i>Créer
+      </button>
+    </div>
+  </form>
+</dialog>
 
 {% endblock %}
