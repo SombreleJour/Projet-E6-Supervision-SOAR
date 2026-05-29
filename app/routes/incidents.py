@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from flask import Blueprint, render_template, redirect, url_for, request, flash, abort
+from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 
 from ..extensions import db
@@ -25,9 +25,7 @@ def list_incidents():
     criticality = request.args.get('criticality')
     category = request.args.get('category')
     source = request.args.get('source')
-
     page = int(request.args.get('page', 1))
-    per_page = 20
 
     query = Incident.query.order_by(Incident.created_at.desc())
 
@@ -40,7 +38,7 @@ def list_incidents():
     if source and source in VALID_SOURCES:
         query = query.filter_by(source=source)
 
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    pagination = query.paginate(page=page, per_page=20, error_out=False)
 
     return render_template(
         'incidents/list.html',
@@ -56,35 +54,27 @@ def list_incidents():
 def new_incident():
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
-        description = request.form.get('description', '').strip()
-        category = request.form.get('category', 'security')
-        criticality = request.form.get('criticality', 'low')
-        source = request.form.get('source', 'manual')
-        asset_id = request.form.get('asset_id') or None
-
         if not title:
             flash('Le titre est obligatoire.', 'danger')
             return redirect(url_for('incidents.new_incident'))
 
+        asset_id = request.form.get('asset_id') or None
         incident = Incident(
             title=title,
-            description=description,
-            category=category,
-            criticality=criticality,
+            description=request.form.get('description', '').strip(),
+            category=request.form.get('category', 'security'),
+            criticality=request.form.get('criticality', 'low'),
             status='open',
-            source=source,
+            source=request.form.get('source', 'manual'),
             asset_id=int(asset_id) if asset_id else None,
             created_by=current_user.id,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
         )
         db.session.add(incident)
         db.session.commit()
-        flash('Incident créé avec succès.', 'success')
+        flash('Incident créé.', 'success')
         return redirect(url_for('incidents.incident_detail', id=incident.id))
 
-    assets = Asset.query.order_by(Asset.name).all()
-    return render_template('incidents/create.html', assets=assets)
+    return render_template('incidents/create.html', assets=Asset.query.order_by(Asset.name).all())
 
 
 @incidents_bp.route('/<int:id>')
@@ -105,13 +95,11 @@ def add_comment(id):
         flash('Le commentaire ne peut pas être vide.', 'danger')
         return redirect(url_for('incidents.incident_detail', id=id))
 
-    comment = IncidentComment(
+    db.session.add(IncidentComment(
         incident_id=incident.id,
         user_id=current_user.id,
         comment=comment_text,
-        created_at=datetime.now(timezone.utc),
-    )
-    db.session.add(comment)
+    ))
     db.session.commit()
     flash('Commentaire ajouté.', 'success')
     return redirect(url_for('incidents.incident_detail', id=id))
@@ -124,7 +112,7 @@ def assign_incident(id):
     user_id = request.form.get('user_id')
 
     if user_id:
-        user = User.query.get(int(user_id))
+        user = db.session.get(User, int(user_id))
         if user:
             incident.assigned_to = user.id
             incident.updated_at = datetime.now(timezone.utc)
@@ -164,24 +152,22 @@ def trigger_soar(id):
     incident = db.get_or_404(Incident, id)
 
     if not incident.asset_id:
-        flash('Aucun asset lié à cet incident — isolation impossible.', 'warning')
+        flash('Aucun asset lié — isolation impossible.', 'warning')
         return redirect(url_for('incidents.incident_detail', id=id))
 
-    alert_data = {
+    result = soar_service.process_wazuh_alert({
         'external_id': incident.external_id or f'manual-{incident.id}',
         'title': incident.title,
         'description': incident.description or '',
-        'source': incident.asset.ip_address if incident.asset else '',
+        'source': str(incident.asset.ip_address) if incident.asset else '',
         'criticality': incident.criticality,
         'category': incident.category,
         'rule_id': 'manual',
-    }
-
-    result = soar_service.process_wazuh_alert(alert_data)
+    })
 
     if result.get('triggered_soar'):
-        flash('Action SOAR déclenchée avec succès.', 'success')
+        flash('Action SOAR déclenchée.', 'success')
     else:
-        flash('Action SOAR non déclenchée (seuil non atteint ou erreur playbook).', 'warning')
+        flash('Action SOAR non déclenchée (seuil non atteint ou erreur).', 'warning')
 
     return redirect(url_for('incidents.incident_detail', id=id))

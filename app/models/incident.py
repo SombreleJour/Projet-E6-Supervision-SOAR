@@ -7,7 +7,7 @@ class Alert(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     external_id = db.Column(db.String(100), unique=True)
-    source = db.Column(db.String(30), nullable=False)  # 'wazuh' | 'prtg'
+    source = db.Column(db.String(30), nullable=False)
     rule_name = db.Column(db.String(200))
     severity = db.Column(db.String(20))
     asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'))
@@ -28,10 +28,10 @@ class Incident(db.Model):
     external_id = db.Column(db.String(100), unique=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
-    category = db.Column(db.String(50), nullable=False)   # 'security' | 'performance' | 'network'
-    criticality = db.Column(db.String(20), nullable=False) # 'low' | 'medium' | 'high' | 'critical'
-    status = db.Column(db.String(30), nullable=False, default='open')  # 'open' | 'in_progress' | 'closed'
-    source = db.Column(db.String(30), nullable=False)     # 'wazuh' | 'prtg' | 'manual'
+    category = db.Column(db.String(50), nullable=False)
+    criticality = db.Column(db.String(20), nullable=False)
+    status = db.Column(db.String(30), nullable=False, default='open')
+    source = db.Column(db.String(30), nullable=False)
     asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'))
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
     assigned_to = db.Column(db.Integer, db.ForeignKey('users.id'))
@@ -43,9 +43,9 @@ class Incident(db.Model):
     creator = db.relationship('User', foreign_keys=[created_by], backref='created_incidents')
     assignee = db.relationship('User', foreign_keys=[assigned_to], backref='assigned_incidents')
     comments = db.relationship('IncidentComment', back_populates='incident',
-                               lazy='dynamic', cascade='all, delete-orphan',
+                               cascade='all, delete-orphan',
                                order_by='IncidentComment.created_at')
-    alerts = db.relationship('Alert', back_populates='incident', lazy='dynamic')
+    alerts = db.relationship('Alert', back_populates='incident')
 
     def __repr__(self):
         return f'<Incident {self.id} [{self.criticality}] {self.title[:40]}>'

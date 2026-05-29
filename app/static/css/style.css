@@ -20,15 +20,12 @@
 .badge.stat-in_progress { background-color: var(--stat-in-progress); color: #000; }
 .badge.stat-closed      { background-color: var(--stat-closed); }
 
-/* Badges sévérité Wazuh (numérique ou textuel) */
-.badge.sev-critical,
-.badge[class*="sev-"]:not(.sev-high):not(.sev-medium):not(.sev-low):not(.sev-unknown) {
-  background-color: var(--crit-critical);
-}
-.badge.sev-high    { background-color: var(--crit-high); }
-.badge.sev-medium  { background-color: var(--crit-medium); color: #000; }
-.badge.sev-low     { background-color: var(--crit-low); }
-.badge.sev-unknown { background-color: #6c757d; }
+/* Badges sévérité Wazuh */
+.badge.sev-critical { background-color: var(--crit-critical); }
+.badge.sev-high     { background-color: var(--crit-high); }
+.badge.sev-medium   { background-color: var(--crit-medium); color: #000; }
+.badge.sev-low      { background-color: var(--crit-low); }
+.badge.sev-unknown  { background-color: #6c757d; }
 
 /* ── Sidebar ─────────────────────────────────────────────────────────── */
 .sidebar .nav-link {
