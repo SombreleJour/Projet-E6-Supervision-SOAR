@@ -1,3 +1,4 @@
+import os
 from flask import Blueprint, request, jsonify
 from ..extensions import db
 from ..utils.decorators import role_required
@@ -7,9 +8,15 @@ from ..services import soar_service
 soar_bp = Blueprint('soar', __name__)
 
 
+def _verify_bearer():
+    auth = request.headers.get('Authorization', '')
+    return auth.startswith('Bearer ') and auth[7:] == os.getenv('SOAR_API_TOKEN', '')
+
+
 @soar_bp.route('/process', methods=['POST'])
-@role_required('admin', 'analyst')
 def process():
+    if not _verify_bearer():
+        return jsonify({'error': 'Unauthorized'}), 401
     alert = request.get_json(silent=True)
     if not alert:
         return jsonify({'error': 'Invalid JSON body'}), 400
