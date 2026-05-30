@@ -4,6 +4,7 @@ Lancer : pytest tests/test_auth.py -v
 """
 import pytest
 from app import create_app
+from app.config import TestConfig
 from app.extensions import db
 from app.models.user import Role, User
 from werkzeug.security import generate_password_hash
@@ -11,13 +12,7 @@ from werkzeug.security import generate_password_hash
 
 @pytest.fixture
 def app():
-    _app = create_app()
-    _app.config.update({
-        'TESTING': True,
-        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
-        'WTF_CSRF_ENABLED': False,
-        'SECRET_KEY': 'test-secret',
-    })
+    _app = create_app(TestConfig)
 
     with _app.app_context():
         db.create_all()
@@ -89,7 +84,7 @@ def test_logout(client):
     login(client, 'admin', 'Admin1234!')
     res = client.get('/logout', follow_redirects=True)
     assert res.status_code == 200
-    assert b'login' in res.request.url.lower() or b'connexion' in res.data.lower()
+    assert 'login' in res.request.url.lower() or b'connexion' in res.data.lower()
 
 
 def test_dashboard_requires_auth(client):

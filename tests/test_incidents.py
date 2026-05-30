@@ -4,9 +4,10 @@ Lancer : pytest tests/test_incidents.py -v
 """
 import pytest
 from app import create_app
+from app.config import TestConfig
 from app.extensions import db
 from app.models.user import Role, User
-from app.models.incident import Incident
+from app.models.incident import Incident, Alert
 from app.models.asset import Asset
 from app.services import soar_service
 from werkzeug.security import generate_password_hash
@@ -14,14 +15,7 @@ from werkzeug.security import generate_password_hash
 
 @pytest.fixture
 def app():
-    _app = create_app()
-    _app.config.update({
-        'TESTING': True,
-        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
-        'WTF_CSRF_ENABLED': False,
-        'SECRET_KEY': 'test-secret',
-        'SOAR_THRESHOLD': 'high',
-    })
+    _app = create_app(TestConfig)
 
     with _app.app_context():
         db.create_all()
@@ -157,6 +151,31 @@ def test_soar_upsert_existing(app):
         r2 = soar_service.process_wazuh_alert(alert)
         assert r2['action'] in ('updated', 'skipped')
         assert r2['incident_id'] == r1['incident_id']
+
+
+def test_soar_records_alert(app):
+    """Fix 2 : chaque alerte Wazuh traitée doit être persistée et liée à l'incident."""
+    with app.app_context():
+        alert = {
+            'external_id': 'wazuh-alert-100',
+            'title': 'Scan de ports détecté',
+            'description': 'Nmap SYN scan',
+            'source': '192.168.99.50',
+            'criticality': 'medium',
+            'category': 'security',
+            'rule_id': '40101',
+        }
+        result = soar_service.process_wazuh_alert(alert)
+
+        stored = Alert.query.filter_by(external_id='wazuh-alert-100').first()
+        assert stored is not None
+        assert stored.source == 'wazuh'
+        assert stored.severity == 'medium'
+        assert stored.incident_id == result['incident_id']
+
+        # Réception du même external_id → pas de doublon d'alerte
+        soar_service.process_wazuh_alert(alert)
+        assert Alert.query.filter_by(external_id='wazuh-alert-100').count() == 1
 
 
 def test_soar_escalation(app):
