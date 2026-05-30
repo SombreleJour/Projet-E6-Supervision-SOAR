@@ -6,7 +6,7 @@
 # Ce qu'il fait :
 #   1. Installe les paquets système (Python, PostgreSQL, git, curl…)
 #   2. Provisionne l'application dans /opt/supervision-app (copie/pull du dépôt)
-#   3. Crée l'utilisateur système 'supervision' qui exécute le service
+#   3. Crée l'utilisateur système 'dashboard' qui exécute le service
 #   4. Génère un .env complet (SECRET_KEY + mot de passe DB aléatoires) s'il manque
 #   5. Crée le rôle + la base PostgreSQL et les synchronise avec le .env
 #   6. Crée le venv, installe les dépendances, initialise la base (seed)
@@ -20,8 +20,8 @@ set -euo pipefail
 
 # ─────────────────────────── Paramètres ────────────────────────────
 APP_DIR="/opt/supervision-app"
-APP_USER="supervision"                 # utilisateur système qui exécute le service
-SERVICE_NAME="supervision"
+APP_USER="dashboard"                   # utilisateur système qui exécute le service
+SERVICE_NAME="dashboard"
 SERVICE_PORT="8000"
 DB_NAME="supervision_db"
 DB_USER="supervision_user"
@@ -153,7 +153,7 @@ ok "Base initialisée."
 
 # ─────────────────── 7. Service systemd ────────────────────────────
 log "Installation du service systemd…"
-install -m 0644 "$APP_DIR/scripts/supervision.service" "/etc/systemd/system/${SERVICE_NAME}.service"
+install -m 0644 "$APP_DIR/scripts/dashboard.service" "/etc/systemd/system/${SERVICE_NAME}.service"
 # Aligne le port si modifié dans ce script
 if [[ "$SERVICE_PORT" != "8000" ]]; then
   sed -i "s|0.0.0.0:8000|0.0.0.0:${SERVICE_PORT}|" "/etc/systemd/system/${SERVICE_NAME}.service"
