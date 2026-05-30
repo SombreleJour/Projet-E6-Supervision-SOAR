@@ -1,5 +1,5 @@
 [Unit]
-Description=Supervision SOC Deletec (Flask/Gunicorn — PRTG/Wazuh/SOAR/IoT)
+Description=Dashboard SOC Deletec (Flask/Gunicorn — PRTG/Wazuh/SOAR/IoT)
 Documentation=https://github.com/SombreleJour/Projet-E6-Supervision-SOAR
 # Démarre après le réseau et PostgreSQL (la base est sur la même VM)
 After=network-online.target postgresql.service
@@ -7,8 +7,8 @@ Wants=network-online.target postgresql.service
 
 [Service]
 Type=simple
-User=supervision
-Group=supervision
+User=dashboard
+Group=dashboard
 WorkingDirectory=/opt/supervision-app
 # .env chargé aussi par python-dotenv ; '-' = ne bloque pas si le fichier manque
 EnvironmentFile=-/opt/supervision-app/.env
