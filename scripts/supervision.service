@@ -1,0 +1,32 @@
+[Unit]
+Description=Supervision SOC Deletec (Flask/Gunicorn — PRTG/Wazuh/SOAR/IoT)
+Documentation=https://github.com/SombreleJour/Projet-E6-Supervision-SOAR
+# Démarre après le réseau et PostgreSQL (la base est sur la même VM)
+After=network-online.target postgresql.service
+Wants=network-online.target postgresql.service
+
+[Service]
+Type=simple
+User=supervision
+Group=supervision
+WorkingDirectory=/opt/supervision-app
+# .env chargé aussi par python-dotenv ; '-' = ne bloque pas si le fichier manque
+EnvironmentFile=-/opt/supervision-app/.env
+ExecStart=/opt/supervision-app/venv/bin/gunicorn \
+    --workers 4 \
+    --bind 0.0.0.0:8000 \
+    --access-logfile - \
+    --error-logfile - \
+    run:app
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+
+# Durcissement (sans gêner l'accès à /opt ni au socket PostgreSQL)
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
