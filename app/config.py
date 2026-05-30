@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from sqlalchemy.pool import StaticPool
 
 load_dotenv()
 
@@ -31,3 +32,22 @@ class Config:
     PFSENSE_URL = os.getenv('PFSENSE_URL', 'https://172.16.1.1')
     PFSENSE_USER = os.getenv('PFSENSE_USER', 'admin')
     PFSENSE_PASSWORD = os.getenv('PFSENSE_PASSWORD', '')
+
+
+class TestConfig(Config):
+    """Configuration dédiée aux tests : base SQLite en mémoire, CSRF désactivé.
+
+    L'URI doit être définie ici (et non surchargée après create_app) car
+    Flask-SQLAlchemy 3.x crée le moteur dès db.init_app().
+    StaticPool partage l'unique connexion en mémoire entre les requêtes
+    du test client.
+    """
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'connect_args': {'check_same_thread': False},
+        'poolclass': StaticPool,
+    }
+    WTF_CSRF_ENABLED = False
+    SECRET_KEY = 'test-secret'
+    SOAR_THRESHOLD = 'high'
