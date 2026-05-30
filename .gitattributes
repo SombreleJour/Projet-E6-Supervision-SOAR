@@ -1,0 +1,4 @@
+# Garantit des fins de ligne LF pour les fichiers destinés à Linux/Debian
+# (un CRLF dans un shebang casse l'exécution du script sur la VM).
+*.sh        text eol=lf
+*.service   text eol=lf
