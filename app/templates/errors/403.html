@@ -3,10 +3,10 @@
 {% block content %}
 <div class="flex flex-col items-center justify-center min-h-[60vh] text-center">
   <p class="font-title text-8xl text-border mb-6">403</p>
-  <h1 class="font-title text-2xl text-[#F5F5F5] mb-2">Accès refusé</h1>
+  <h1 class="font-title text-2xl text-fg mb-2">Accès refusé</h1>
   <p class="text-muted text-sm mb-8">Vous n'avez pas les droits pour accéder à cette ressource.</p>
   <a href="{{ url_for('dashboard.dashboard') }}"
-     class="border border-border text-[#F5F5F5] text-xs px-6 py-3 uppercase tracking-widest hover:border-accent hover:text-accent transition-colors duration-200">
+     class="border border-border text-fg text-xs px-6 py-3 uppercase tracking-widest hover:border-accent hover:text-accent transition-colors duration-200">
     Retour au dashboard
   </a>
 </div>

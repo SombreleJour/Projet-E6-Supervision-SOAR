@@ -93,7 +93,16 @@ def test_dashboard_requires_auth(client):
     assert '/login' in res.headers['Location']
 
 
-def test_admin_requires_role(client):
+def test_settings_open_to_all_authenticated(client):
     login(client, 'operator', 'Admin1234!')
     res = client.get('/admin/', follow_redirects=False)
+    assert res.status_code == 200
+    assert b'Utilisateurs' not in res.data
+
+
+def test_admin_actions_require_role(client):
+    login(client, 'operator', 'Admin1234!')
+    res = client.post('/admin/users/create', data={
+        'username': 'x', 'email': 'x@test.local', 'password': 'Admin1234!', 'role': 'operator',
+    }, follow_redirects=False)
     assert res.status_code == 403

@@ -8,7 +8,7 @@
     <i class="bi bi-arrow-left"></i>
   </a>
   <div>
-    <h1 class="font-title text-2xl text-[#F5F5F5]">Nouveau ticket</h1>
+    <h1 class="font-title text-2xl text-fg">Nouveau ticket</h1>
     <p class="text-xs text-muted mt-1 uppercase tracking-widest">Créer un incident manuellement</p>
   </div>
 </div>
@@ -27,14 +27,14 @@
         </label>
         <input type="text" id="title" name="title" required maxlength="200"
                placeholder="Description courte de l'incident"
-               class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 placeholder:text-muted">
+               class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 placeholder:text-muted">
       </div>
 
       <div class="mb-5">
         <label for="description" class="block text-[10px] text-muted uppercase tracking-wider mb-2">Description</label>
         <textarea id="description" name="description" rows="4"
                   placeholder="Détails, étapes de reproduction, contexte…"
-                  class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 placeholder:text-muted resize-none"></textarea>
+                  class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 placeholder:text-muted resize-none"></textarea>
       </div>
 
       <div class="grid grid-cols-3 gap-4 mb-5">
@@ -46,7 +46,7 @@
         <div>
           <label for="{{ name }}" class="block text-[10px] text-muted uppercase tracking-wider mb-2">{{ label }}</label>
           <select id="{{ name }}" name="{{ name }}"
-                  class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+                  class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
             {% for opt in options %}
             <option value="{{ opt }}">{{ opt }}</option>
             {% endfor %}
@@ -58,7 +58,7 @@
       <div class="mb-6">
         <label for="asset_id" class="block text-[10px] text-muted uppercase tracking-wider mb-2">Asset concerné</label>
         <select id="asset_id" name="asset_id"
-                class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+                class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
           <option value="">— Aucun —</option>
           {% for asset in assets %}
           <option value="{{ asset.id }}">{{ asset.name }} ({{ asset.ip_address }})</option>
@@ -68,11 +68,11 @@
 
       <div class="flex gap-3">
         <button type="submit"
-                class="bg-accent text-bg text-xs font-title font-bold px-6 py-2.5 uppercase tracking-widest hover:bg-[#d4eb3d] transition-colors duration-200">
+                class="bg-accent text-onaccent text-xs font-title font-bold px-6 py-2.5 uppercase tracking-widest hover:bg-accenth transition-colors duration-200">
           <i class="bi bi-check-lg mr-1"></i>Créer l'incident
         </button>
         <a href="{{ url_for('incidents.list_incidents') }}"
-           class="border border-border text-[#F5F5F5] text-xs px-6 py-2.5 hover:border-muted transition-colors duration-200 uppercase tracking-wider">
+           class="border border-border text-fg text-xs px-6 py-2.5 hover:border-muted transition-colors duration-200 uppercase tracking-wider">
           Annuler
         </a>
       </div>

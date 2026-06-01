@@ -1,6 +1,6 @@
 /* Graphique IoT — Chart.js double axe Y + refresh 60s */
 (function () {
-  const INTERVAL = 60000;
+  const INTERVAL = (window.SUPERVISION && window.SUPERVISION.refreshMs) || 60000;
   const canvas = document.getElementById('iotChart');
   if (!canvas) return;
 

@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="mb-8">
-  <h1 class="font-title text-2xl text-[#F5F5F5]">Alertes de sécurité</h1>
+  <h1 class="font-title text-2xl text-fg">Alertes de sécurité</h1>
   <p class="text-xs text-muted mt-1 uppercase tracking-widest">Wazuh — Base de données + temps réel</p>
 </div>
 
@@ -27,9 +27,9 @@
     </thead>
     <tbody>
       {% for la in live_alerts %}
-      <tr class="border-b border-border/50 hover:bg-[#1c1c1c] transition-colors duration-150">
+      <tr class="border-b border-border/50 hover:bg-hover transition-colors duration-150">
         <td class="px-4 py-3"><code class="text-xs text-accent">{{ la.get('rule', {}).get('id', '—') }}</code></td>
-        <td class="px-4 py-3 text-[#F5F5F5] max-w-xs">
+        <td class="px-4 py-3 text-fg max-w-xs">
           <span class="block truncate text-xs">{{ la.get('rule', {}).get('description', '—') }}</span>
         </td>
         <td class="px-4 py-3">
@@ -55,7 +55,7 @@
       <div>
         <label class="block text-[10px] text-muted uppercase tracking-wider mb-1.5">Sévérité</label>
         <select name="severity"
-                class="bg-bg border border-border text-[#F5F5F5] text-sm px-3 py-2 outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+                class="bg-bg border border-border text-fg text-sm px-3 py-2 outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
           <option value="">Toutes</option>
           {% for sev in ['critical', 'high', 'medium', 'low'] %}
           <option value="{{ sev }}" {% if filters.severity == sev %}selected{% endif %}>{{ sev }}</option>
@@ -65,14 +65,14 @@
       <div>
         <label class="block text-[10px] text-muted uppercase tracking-wider mb-1.5">Source</label>
         <select name="source"
-                class="bg-bg border border-border text-[#F5F5F5] text-sm px-3 py-2 outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+                class="bg-bg border border-border text-fg text-sm px-3 py-2 outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
           <option value="">Toutes</option>
           <option value="wazuh" {% if filters.source == 'wazuh' %}selected{% endif %}>wazuh</option>
           <option value="prtg" {% if filters.source == 'prtg' %}selected{% endif %}>prtg</option>
         </select>
       </div>
       <button type="submit"
-              class="border border-border text-[#F5F5F5] text-xs px-4 py-2 hover:border-accent transition-colors duration-200 uppercase tracking-wider">
+              class="border border-border text-fg text-xs px-4 py-2 hover:border-accent transition-colors duration-200 uppercase tracking-wider">
         Filtrer
       </button>
     </div>
@@ -98,9 +98,9 @@
     </thead>
     <tbody>
       {% for alert in alerts %}
-      <tr class="border-b border-border/50 hover:bg-[#1c1c1c] transition-colors duration-150">
+      <tr class="border-b border-border/50 hover:bg-hover transition-colors duration-150">
         <td class="px-4 py-3"><code class="text-xs text-muted">{{ alert.external_id or '—' }}</code></td>
-        <td class="px-4 py-3 text-[#F5F5F5] max-w-xs">
+        <td class="px-4 py-3 text-fg max-w-xs">
           <span class="block truncate text-xs" title="{{ alert.rule_name }}">{{ alert.rule_name or '—' }}</span>
         </td>
         <td class="px-4 py-3"><span class="badge sev-{{ alert.severity }}">{{ alert.severity or '—' }}</span></td>

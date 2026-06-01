@@ -1,3 +1,29 @@
+/* ── Variables de thème (canaux RGB pour <alpha-value> Tailwind) ──────── */
+:root {
+  --c-bg:           10 10 10;     /* #0A0A0A */
+  --c-surface:      20 20 20;     /* #141414 */
+  --c-border:       38 38 38;     /* #262626 */
+  --c-accent:       232 255 71;   /* #E8FF47 */
+  --c-accent-hover: 212 235 61;   /* #D4EB3D */
+  --c-muted:        107 107 107;  /* #6B6B6B */
+  --c-fg:           245 245 245;  /* #F5F5F5 */
+  --c-hover:        28 28 28;      /* #1C1C1C */
+  --c-on-accent:    10 10 10;     /* texte sur fond accent */
+}
+
+/* ── Thème clair ──────────────────────────────────────────────────────── */
+:root.theme-light {
+  --c-bg:           244 244 245;  /* #F4F4F5 */
+  --c-surface:      255 255 255;  /* #FFFFFF */
+  --c-border:       212 212 216;  /* #D4D4D8 */
+  --c-accent:       77 124 15;    /* #4D7C0F  lime foncé lisible */
+  --c-accent-hover: 63 98 18;     /* #3F6212 */
+  --c-muted:        113 113 122;  /* #71717A */
+  --c-fg:           24 24 27;     /* #18181B */
+  --c-hover:        235 235 238;  /* #EBEBEE */
+  --c-on-accent:    255 255 255;  /* texte blanc sur accent foncé */
+}
+
 /* ── Badges dynamiques (classes générées par Jinja — Tailwind ne peut pas purger) ── */
 .badge {
   display: inline-flex;
@@ -26,13 +52,18 @@
 .badge.sev-low      { background: #4CAF50; color: #0A0A0A; }
 .badge.sev-unknown  { border: 1px solid #6B6B6B; color: #6B6B6B; background: transparent; }
 
+/* En thème clair, les badges accent doivent garder un texte lisible */
+:root.theme-light .badge.crit-critical,
+:root.theme-light .badge.sev-critical { background: #4D7C0F; color: #FFFFFF; }
+:root.theme-light .badge.stat-open    { border-color: #4D7C0F; color: #4D7C0F; }
+
 /* ── Native <dialog> (remplace Bootstrap Modal) ──────────────────────── */
 dialog {
   padding: 0;
-  border: 1px solid #262626;
+  border: 1px solid rgb(var(--c-border));
   border-radius: 2px;
-  background: #141414;
-  color: #F5F5F5;
+  background: rgb(var(--c-surface));
+  color: rgb(var(--c-fg));
   width: min(520px, 92vw);
   max-height: 90vh;
   overflow-y: auto;
@@ -41,9 +72,35 @@ dialog::backdrop {
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(3px);
 }
+:root.theme-light dialog::backdrop {
+  background: rgba(0, 0, 0, 0.35);
+}
 
 /* ── Scrollbar ────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: #0A0A0A; }
-::-webkit-scrollbar-thumb { background: #262626; border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+::-webkit-scrollbar-track { background: rgb(var(--c-bg)); }
+::-webkit-scrollbar-thumb { background: rgb(var(--c-border)); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--c-muted)); }
+
+/* ── Lisibilité des encarts d'état (alertes) en thème clair ───────────── */
+/* Les fonds sombres translucides (-950/x) deviennent des teintes claires,
+   et les textes clairs (-300) sont assombris. */
+:root.theme-light .bg-red-950\/30,
+:root.theme-light .bg-red-950\/40,
+:root.theme-light .bg-red-950\/50    { background-color: #FEF2F2 !important; }
+:root.theme-light .bg-yellow-950\/30,
+:root.theme-light .bg-yellow-950\/40,
+:root.theme-light .bg-yellow-950\/50 { background-color: #FEFCE8 !important; }
+:root.theme-light .bg-green-950\/50  { background-color: #F0FDF4 !important; }
+
+:root.theme-light .text-red-300    { color: #B91C1C !important; }
+:root.theme-light .text-yellow-300 { color: #A16207 !important; }
+:root.theme-light .text-green-300  { color: #15803D !important; }
+:root.theme-light .text-red-400    { color: #DC2626 !important; }
+:root.theme-light .text-yellow-400 { color: #CA8A04 !important; }
+:root.theme-light .text-green-400  { color: #16A34A !important; }
+:root.theme-light .text-blue-400   { color: #2563EB !important; }
+
+:root.theme-light .border-red-800,
+:root.theme-light .border-red-900    { border-color: #FCA5A5 !important; }
+:root.theme-light .border-yellow-800 { border-color: #FDE68A !important; }

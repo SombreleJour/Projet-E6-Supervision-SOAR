@@ -19,7 +19,7 @@
       <span class="text-[10px] uppercase tracking-wider text-muted border border-border px-1.5 py-0.5">{{ incident.category }}</span>
       {% endif %}
     </div>
-    <h1 class="font-title text-xl text-[#F5F5F5] leading-tight">{{ incident.title }}</h1>
+    <h1 class="font-title text-xl text-fg leading-tight">{{ incident.title }}</h1>
   </div>
 </div>
 
@@ -34,7 +34,7 @@
         <p class="text-[10px] text-muted uppercase tracking-wider font-medium">Description</p>
       </div>
       <div class="p-4">
-        <pre class="text-sm text-[#F5F5F5] whitespace-pre-wrap font-body leading-relaxed">{{ incident.description or 'Aucune description.' }}</pre>
+        <pre class="text-sm text-fg whitespace-pre-wrap font-body leading-relaxed">{{ incident.description or 'Aucune description.' }}</pre>
       </div>
     </div>
 
@@ -48,10 +48,10 @@
       {% for comment in incident.comments %}
       <div class="px-4 py-4 border-b border-border/50">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-sm font-medium text-[#F5F5F5]">{{ comment.author.username }}</span>
+          <span class="text-sm font-medium text-fg">{{ comment.author.username }}</span>
           <span class="text-xs text-muted">{{ comment.created_at.strftime('%d/%m/%Y %H:%M') if comment.created_at else '—' }}</span>
         </div>
-        <p class="text-sm text-[#F5F5F5]/80 leading-relaxed">{{ comment.comment }}</p>
+        <p class="text-sm text-fg/80 leading-relaxed">{{ comment.comment }}</p>
       </div>
       {% else %}
       <p class="px-4 py-6 text-muted text-sm">Aucun commentaire.</p>
@@ -67,9 +67,9 @@
         <form method="POST" action="{{ url_for('incidents.add_comment', id=incident.id) }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <textarea name="comment" rows="3" required placeholder="Votre commentaire…"
-                    class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 placeholder:text-muted resize-none mb-3"></textarea>
+                    class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 placeholder:text-muted resize-none mb-3"></textarea>
           <button type="submit"
-                  class="bg-accent text-bg text-xs font-title font-bold px-4 py-2 uppercase tracking-widest hover:bg-[#d4eb3d] transition-colors duration-200">
+                  class="bg-accent text-onaccent text-xs font-title font-bold px-4 py-2 uppercase tracking-widest hover:bg-accenth transition-colors duration-200">
             <i class="bi bi-send mr-1"></i>Commenter
           </button>
         </form>
@@ -95,7 +95,7 @@
         ] %}
         <div class="flex items-center justify-between px-4 py-2.5">
           <span class="text-[10px] text-muted uppercase tracking-wider">{{ label }}</span>
-          <span class="text-sm text-[#F5F5F5]">{{ value }}</span>
+          <span class="text-sm text-fg">{{ value }}</span>
         </div>
         {% endfor %}
         {% if incident.external_id %}
@@ -118,13 +118,13 @@
         <form method="POST" action="{{ url_for('incidents.change_status', id=incident.id) }}" class="flex gap-2">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <select name="status"
-                  class="flex-1 bg-bg border border-border text-[#F5F5F5] px-3 py-2 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+                  class="flex-1 bg-bg border border-border text-fg px-3 py-2 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
             {% for s in ['open', 'in_progress', 'closed'] %}
             <option value="{{ s }}" {% if s == incident.status %}selected{% endif %}>{{ s }}</option>
             {% endfor %}
           </select>
           <button type="submit"
-                  class="border border-border text-[#F5F5F5] text-xs px-3 py-2 hover:border-accent transition-colors duration-200 uppercase tracking-wider shrink-0">
+                  class="border border-border text-fg text-xs px-3 py-2 hover:border-accent transition-colors duration-200 uppercase tracking-wider shrink-0">
             OK
           </button>
         </form>
@@ -140,7 +140,7 @@
         <form method="POST" action="{{ url_for('incidents.assign_incident', id=incident.id) }}" class="flex gap-2">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <select name="user_id"
-                  class="flex-1 bg-bg border border-border text-[#F5F5F5] px-3 py-2 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+                  class="flex-1 bg-bg border border-border text-fg px-3 py-2 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
             <option value="">— Aucun —</option>
             {% for user in users %}
             <option value="{{ user.id }}" {% if incident.assigned_to == user.id %}selected{% endif %}>
@@ -149,7 +149,7 @@
             {% endfor %}
           </select>
           <button type="submit"
-                  class="border border-border text-[#F5F5F5] text-xs px-3 py-2 hover:border-accent transition-colors duration-200 uppercase tracking-wider shrink-0">
+                  class="border border-border text-fg text-xs px-3 py-2 hover:border-accent transition-colors duration-200 uppercase tracking-wider shrink-0">
             OK
           </button>
         </form>
@@ -198,10 +198,10 @@
     </h2>
   </div>
   <div class="px-6 py-5 space-y-4">
-    <p class="text-sm text-[#F5F5F5]">Vous allez déclencher l'isolation réseau via Wazuh Active Response pour :</p>
+    <p class="text-sm text-fg">Vous allez déclencher l'isolation réseau via Wazuh Active Response pour :</p>
     <ul class="space-y-1 text-sm text-muted">
-      <li><span class="text-[#F5F5F5]">Asset :</span> {{ incident.asset.name if incident.asset else '—' }}</li>
-      <li><span class="text-[#F5F5F5]">IP :</span> {{ incident.asset.ip_address if incident.asset else '—' }}</li>
+      <li><span class="text-fg">Asset :</span> {{ incident.asset.name if incident.asset else '—' }}</li>
+      <li><span class="text-fg">IP :</span> {{ incident.asset.ip_address if incident.asset else '—' }}</li>
     </ul>
     <div class="border border-red-800 bg-red-950/40 px-4 py-3 text-sm text-red-300">
       <i class="bi bi-exclamation-triangle mr-2"></i>
@@ -210,7 +210,7 @@
   </div>
   <div class="px-6 py-4 border-t border-border flex justify-end gap-3">
     <button type="button" onclick="document.getElementById('dialogIsolate').close()"
-            class="border border-border text-[#F5F5F5] text-xs px-4 py-2 hover:border-muted transition-colors duration-200 uppercase tracking-wider">
+            class="border border-border text-fg text-xs px-4 py-2 hover:border-muted transition-colors duration-200 uppercase tracking-wider">
       Annuler
     </button>
     <form method="POST" action="{{ url_for('incidents.trigger_soar', id=incident.id) }}">
@@ -231,10 +231,10 @@
     </h2>
   </div>
   <div class="px-6 py-5 space-y-4">
-    <p class="text-sm text-[#F5F5F5]">Vous allez ajouter une règle de blocage sur pfSense pour :</p>
+    <p class="text-sm text-fg">Vous allez ajouter une règle de blocage sur pfSense pour :</p>
     <ul class="space-y-1 text-sm text-muted">
-      <li><span class="text-[#F5F5F5]">Asset :</span> {{ incident.asset.name if incident.asset else '—' }}</li>
-      <li><span class="text-[#F5F5F5]">IP :</span> {{ incident.asset.ip_address if incident.asset else '—' }}</li>
+      <li><span class="text-fg">Asset :</span> {{ incident.asset.name if incident.asset else '—' }}</li>
+      <li><span class="text-fg">IP :</span> {{ incident.asset.ip_address if incident.asset else '—' }}</li>
     </ul>
     <div class="border border-yellow-800 bg-yellow-950/40 px-4 py-3 text-sm text-yellow-300">
       <i class="bi bi-exclamation-triangle mr-2"></i>
@@ -243,14 +243,14 @@
   </div>
   <div class="px-6 py-4 border-t border-border flex justify-end gap-3">
     <button type="button" onclick="document.getElementById('dialogBlockIP').close()"
-            class="border border-border text-[#F5F5F5] text-xs px-4 py-2 hover:border-muted transition-colors duration-200 uppercase tracking-wider">
+            class="border border-border text-fg text-xs px-4 py-2 hover:border-muted transition-colors duration-200 uppercase tracking-wider">
       Annuler
     </button>
     <form method="POST" action="{{ url_for('incidents.trigger_soar', id=incident.id) }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="action" value="block_ip">
       <button type="submit"
-              class="bg-yellow-600 text-bg text-xs px-4 py-2 uppercase tracking-wider hover:bg-yellow-500 transition-colors duration-200">
+              class="bg-yellow-600 text-onaccent text-xs px-4 py-2 uppercase tracking-wider hover:bg-yellow-500 transition-colors duration-200">
         <i class="bi bi-slash-circle mr-1"></i>Confirmer
       </button>
     </form>

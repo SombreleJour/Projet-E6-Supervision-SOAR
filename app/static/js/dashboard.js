@@ -1,6 +1,6 @@
 /* Polling dashboard stats toutes les 30 secondes */
 (function () {
-  const INTERVAL = 30000;
+  const INTERVAL = (window.SUPERVISION && window.SUPERVISION.refreshMs) || 30000;
 
   const el = (id) => document.getElementById(id);
 

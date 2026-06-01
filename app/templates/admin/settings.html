@@ -1,81 +1,130 @@
 {% extends "base.html" %}
-{% block title %}Administration{% endblock %}
+{% block title %}Paramètres{% endblock %}
 
 {% block content %}
 <div class="mb-8">
-  <h1 class="font-title text-2xl text-[#F5F5F5]">Administration</h1>
-  <p class="text-xs text-muted mt-1 uppercase tracking-widest">Système et utilisateurs</p>
+  <h1 class="font-title text-2xl text-fg">Paramètres</h1>
+  <p class="text-xs text-muted mt-1 uppercase tracking-widest">Préférences et compte</p>
 </div>
 
-<!-- ── Informations système ───────────────────────────────────────────────── -->
+<!-- ── Apparence ───────────────────────────────────────────────────────── -->
 <div class="bg-surface border border-border mb-6">
   <div class="px-4 py-3 border-b border-border">
     <p class="text-[10px] text-muted uppercase tracking-wider font-medium">
-      <i class="bi bi-info-circle mr-1"></i>Informations système
+      <i class="bi bi-palette mr-1"></i>Apparence
     </p>
   </div>
-  <div class="grid grid-cols-3 divide-x divide-border">
-    <div class="px-4 py-4">
-      <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Flask</p>
-      <code class="text-sm text-accent">{{ system_info.flask_version }}</code>
+  <div class="p-6 flex items-center justify-between gap-4">
+    <div>
+      <p class="text-sm text-fg">Thème de l'interface</p>
+      <p class="text-xs text-muted mt-1">Préférence enregistrée sur ce navigateur.</p>
     </div>
-    <div class="px-4 py-4">
-      <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Python</p>
-      <code class="text-sm text-accent">{{ system_info.python_version }}</code>
-    </div>
-    <div class="px-4 py-4">
-      <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Base de données</p>
-      <span class="text-[10px] uppercase tracking-wider border px-1.5 py-0.5
-        {% if system_info.db_status == 'Connecté' %}text-green-400 border-green-700{% else %}text-red-400 border-red-700{% endif %}">
-        {{ system_info.db_status }}
-      </span>
+    <div class="inline-flex border border-border">
+      <button type="button" id="theme-dark"
+              class="flex items-center gap-2 px-4 py-2 text-xs uppercase tracking-wider transition-colors duration-200">
+        <i class="bi bi-moon-stars"></i>Sombre
+      </button>
+      <button type="button" id="theme-light"
+              class="flex items-center gap-2 px-4 py-2 text-xs uppercase tracking-wider transition-colors duration-200 border-l border-border">
+        <i class="bi bi-sun"></i>Clair
+      </button>
     </div>
   </div>
 </div>
 
-<!-- ── Seuils IoT ──────────────────────────────────────────────────────────── -->
+<!-- ── Préférences d'affichage ─────────────────────────────────────────── -->
 <div class="bg-surface border border-border mb-6">
   <div class="px-4 py-3 border-b border-border">
     <p class="text-[10px] text-muted uppercase tracking-wider font-medium">
-      <i class="bi bi-sliders mr-1"></i>Seuils d'alerte IoT
+      <i class="bi bi-arrow-repeat mr-1"></i>Rafraîchissement automatique
     </p>
   </div>
-  <div class="p-6">
-    <form method="POST" action="{{ url_for('admin.update_thresholds') }}">
+  <div class="p-6 flex items-center justify-between gap-4">
+    <div>
+      <p class="text-sm text-fg">Intervalle d'actualisation</p>
+      <p class="text-xs text-muted mt-1">Fréquence de mise à jour des pages temps réel (Dashboard, IoT).</p>
+    </div>
+    <select id="refresh-interval"
+            class="bg-bg border border-border text-fg px-3 py-2 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+      <option value="15000">15 secondes</option>
+      <option value="30000">30 secondes</option>
+      <option value="60000">60 secondes</option>
+      <option value="120000">2 minutes</option>
+      <option value="300000">5 minutes</option>
+    </select>
+  </div>
+</div>
+
+<!-- ── Mon compte ──────────────────────────────────────────────────────── -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+
+  <!-- Profil -->
+  <div class="bg-surface border border-border">
+    <div class="px-4 py-3 border-b border-border">
+      <p class="text-[10px] text-muted uppercase tracking-wider font-medium">
+        <i class="bi bi-person mr-1"></i>Mon profil
+      </p>
+    </div>
+    <form method="POST" action="{{ url_for('admin.update_profile') }}" class="p-6 space-y-4">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-        {% for label, name, val in [
-          ('Temp. max (°C)', 'temp_max', thresholds.temp_max),
-          ('Temp. min (°C)', 'temp_min', thresholds.temp_min),
-          ('Hum. max (%)', 'hum_max', thresholds.hum_max),
-          ('Hum. min (%)', 'hum_min', thresholds.hum_min),
-        ] %}
-        <div>
-          <label class="block text-[10px] text-muted uppercase tracking-wider mb-2">{{ label }}</label>
-          <input type="number" step="0.1" name="{{ name }}" value="{{ val }}"
-                 class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2 text-sm outline-none focus:border-accent transition-colors duration-200">
-        </div>
-        {% endfor %}
+      <div>
+        <label class="block text-[10px] text-muted uppercase tracking-wider mb-2">Identifiant</label>
+        <input type="text" name="username" value="{{ current_user.username }}" required
+               class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200">
       </div>
-      <div class="flex items-center gap-4">
-        <button type="submit"
-                class="bg-accent text-bg text-xs font-title font-bold px-4 py-2 uppercase tracking-widest hover:bg-[#d4eb3d] transition-colors duration-200">
-          <i class="bi bi-check-lg mr-1"></i>Enregistrer
-        </button>
-        <p class="text-xs text-muted">Seuils actifs pour la session en cours uniquement.</p>
+      <div>
+        <label class="block text-[10px] text-muted uppercase tracking-wider mb-2">Email</label>
+        <input type="email" name="email" value="{{ current_user.email }}" required
+               class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200">
       </div>
+      <button type="submit"
+              class="bg-accent text-onaccent text-xs font-title font-bold px-4 py-2 uppercase tracking-widest hover:bg-accenth transition-colors duration-200">
+        <i class="bi bi-check-lg mr-1"></i>Enregistrer
+      </button>
+    </form>
+  </div>
+
+  <!-- Mot de passe -->
+  <div class="bg-surface border border-border">
+    <div class="px-4 py-3 border-b border-border">
+      <p class="text-[10px] text-muted uppercase tracking-wider font-medium">
+        <i class="bi bi-key mr-1"></i>Mot de passe
+      </p>
+    </div>
+    <form method="POST" action="{{ url_for('admin.change_password') }}" class="p-6 space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div>
+        <label class="block text-[10px] text-muted uppercase tracking-wider mb-2">Mot de passe actuel</label>
+        <input type="password" name="current_password" required
+               class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200">
+      </div>
+      <div>
+        <label class="block text-[10px] text-muted uppercase tracking-wider mb-2">Nouveau mot de passe</label>
+        <input type="password" name="new_password" required minlength="8"
+               class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200">
+      </div>
+      <div>
+        <label class="block text-[10px] text-muted uppercase tracking-wider mb-2">Confirmer</label>
+        <input type="password" name="confirm_password" required minlength="8"
+               class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200">
+      </div>
+      <button type="submit"
+              class="bg-accent text-onaccent text-xs font-title font-bold px-4 py-2 uppercase tracking-widest hover:bg-accenth transition-colors duration-200">
+        <i class="bi bi-shield-lock mr-1"></i>Changer le mot de passe
+      </button>
     </form>
   </div>
 </div>
 
-<!-- ── Utilisateurs ────────────────────────────────────────────────────────── -->
+{% if current_user.has_role('admin') and users is not none %}
+<!-- ── Utilisateurs (admin) ────────────────────────────────────────────── -->
 <div class="bg-surface border border-border">
   <div class="flex items-center justify-between px-4 py-3 border-b border-border">
     <p class="text-[10px] text-muted uppercase tracking-wider font-medium">
       <i class="bi bi-people mr-1"></i>Utilisateurs
     </p>
     <button onclick="document.getElementById('dialogCreateUser').showModal()"
-            class="bg-accent text-bg text-[10px] font-title font-bold px-3 py-1.5 uppercase tracking-widest hover:bg-[#d4eb3d] transition-colors duration-200">
+            class="bg-accent text-onaccent text-[10px] font-title font-bold px-3 py-1.5 uppercase tracking-widest hover:bg-accenth transition-colors duration-200">
       <i class="bi bi-plus-lg mr-1"></i>Nouvel utilisateur
     </button>
   </div>
@@ -88,14 +137,14 @@
         <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Rôle</th>
         <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Statut</th>
         <th class="px-4 py-2.5 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Créé le</th>
-        <th class="px-4 py-2.5"></th>
+        <th class="px-4 py-2.5 text-right text-[10px] text-muted uppercase tracking-wider font-medium">Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for user in users %}
-      <tr class="border-b border-border/50 hover:bg-[#1c1c1c] transition-colors duration-150">
+      <tr class="border-b border-border/50 hover:bg-hover transition-colors duration-150">
         <td class="px-4 py-3 text-muted text-xs">{{ user.id }}</td>
-        <td class="px-4 py-3 font-medium text-[#F5F5F5]">{{ user.username }}</td>
+        <td class="px-4 py-3 font-medium text-fg">{{ user.username }}</td>
         <td class="px-4 py-3 text-muted text-xs">{{ user.email }}</td>
         <td class="px-4 py-3">
           <span class="text-[10px] uppercase tracking-wider text-muted border border-border px-1.5 py-0.5">{{ user.role.name }}</span>
@@ -110,15 +159,25 @@
           {{ user.created_at.strftime('%d/%m/%Y') if user.created_at else '—' }}
         </td>
         <td class="px-4 py-3">
-          {% if user.id != current_user.id %}
-          <form method="POST" action="{{ url_for('admin.toggle_user', id=user.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit"
+          <div class="flex items-center justify-end gap-2">
+            <button onclick="document.getElementById('dialogEditUser{{ user.id }}').showModal()"
                     class="text-[10px] uppercase tracking-wider text-muted border border-border px-2 py-1 hover:border-accent hover:text-accent transition-colors duration-200">
-              {% if user.is_active %}Désactiver{% else %}Activer{% endif %}
+              Modifier
             </button>
-          </form>
-          {% endif %}
+            {% if user.id != current_user.id %}
+            <form method="POST" action="{{ url_for('admin.toggle_user', id=user.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit"
+                      class="text-[10px] uppercase tracking-wider text-muted border border-border px-2 py-1 hover:border-accent hover:text-accent transition-colors duration-200">
+                {% if user.is_active %}Désactiver{% else %}Activer{% endif %}
+              </button>
+            </form>
+            <button onclick="document.getElementById('dialogDeleteUser{{ user.id }}').showModal()"
+                    class="text-[10px] uppercase tracking-wider text-red-400 border border-red-900 px-2 py-1 hover:border-red-600 hover:text-red-300 transition-colors duration-200">
+              Supprimer
+            </button>
+            {% endif %}
+          </div>
         </td>
       </tr>
       {% endfor %}
@@ -129,7 +188,7 @@
 <!-- ── Dialog création utilisateur ───────────────────────────────────────── -->
 <dialog id="dialogCreateUser">
   <div class="px-6 py-5 border-b border-border">
-    <h2 class="font-title text-lg text-[#F5F5F5]">
+    <h2 class="font-title text-lg text-fg">
       <i class="bi bi-person-plus mr-2"></i>Nouvel utilisateur
     </h2>
   </div>
@@ -144,13 +203,13 @@
       <div>
         <label class="block text-[10px] text-muted uppercase tracking-wider mb-2">{{ label }}</label>
         <input type="{{ type_ }}" name="{{ name }}" required placeholder="{{ placeholder }}"
-               class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 placeholder:text-muted">
+               class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 placeholder:text-muted">
       </div>
       {% endfor %}
       <div>
         <label class="block text-[10px] text-muted uppercase tracking-wider mb-2">Rôle</label>
         <select name="role"
-                class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+                class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
           {% for role in roles %}
           <option value="{{ role.name }}">{{ role.name }}</option>
           {% endfor %}
@@ -159,15 +218,125 @@
     </div>
     <div class="px-6 py-4 border-t border-border flex justify-end gap-3">
       <button type="button" onclick="document.getElementById('dialogCreateUser').close()"
-              class="border border-border text-[#F5F5F5] text-xs px-4 py-2 hover:border-muted transition-colors duration-200 uppercase tracking-wider">
+              class="border border-border text-fg text-xs px-4 py-2 hover:border-muted transition-colors duration-200 uppercase tracking-wider">
         Annuler
       </button>
       <button type="submit"
-              class="bg-accent text-bg text-xs font-title font-bold px-4 py-2 uppercase tracking-widest hover:bg-[#d4eb3d] transition-colors duration-200">
+              class="bg-accent text-onaccent text-xs font-title font-bold px-4 py-2 uppercase tracking-widest hover:bg-accenth transition-colors duration-200">
         <i class="bi bi-check-lg mr-1"></i>Créer
       </button>
     </div>
   </form>
 </dialog>
 
+<!-- ── Dialogs édition / suppression par utilisateur ──────────────────────── -->
+{% for user in users %}
+<dialog id="dialogEditUser{{ user.id }}">
+  <div class="px-6 py-5 border-b border-border">
+    <h2 class="font-title text-lg text-fg">
+      <i class="bi bi-pencil-square mr-2"></i>Modifier « {{ user.username }} »
+    </h2>
+  </div>
+  <form method="POST" action="{{ url_for('admin.edit_user', id=user.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="px-6 py-5 space-y-4">
+      <div>
+        <label class="block text-[10px] text-muted uppercase tracking-wider mb-2">Identifiant</label>
+        <input type="text" name="username" value="{{ user.username }}" required
+               class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200">
+      </div>
+      <div>
+        <label class="block text-[10px] text-muted uppercase tracking-wider mb-2">Email</label>
+        <input type="email" name="email" value="{{ user.email }}" required
+               class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200">
+      </div>
+      <div>
+        <label class="block text-[10px] text-muted uppercase tracking-wider mb-2">Rôle</label>
+        <select name="role"
+                class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+          {% for role in roles %}
+          <option value="{{ role.name }}" {% if user.role and user.role.name == role.name %}selected{% endif %}>{{ role.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-border flex justify-end gap-3">
+      <button type="button" onclick="document.getElementById('dialogEditUser{{ user.id }}').close()"
+              class="border border-border text-fg text-xs px-4 py-2 hover:border-muted transition-colors duration-200 uppercase tracking-wider">
+        Annuler
+      </button>
+      <button type="submit"
+              class="bg-accent text-onaccent text-xs font-title font-bold px-4 py-2 uppercase tracking-widest hover:bg-accenth transition-colors duration-200">
+        <i class="bi bi-check-lg mr-1"></i>Enregistrer
+      </button>
+    </div>
+  </form>
+</dialog>
+
+{% if user.id != current_user.id %}
+<dialog id="dialogDeleteUser{{ user.id }}">
+  <div class="px-6 py-5 border-b border-border">
+    <h2 class="font-title text-lg text-fg">
+      <i class="bi bi-exclamation-triangle text-red-400 mr-2"></i>Supprimer l'utilisateur
+    </h2>
+  </div>
+  <div class="px-6 py-5">
+    <p class="text-sm text-fg">Supprimer définitivement le compte « <span class="font-medium">{{ user.username }}</span> » ?</p>
+    <p class="text-xs text-muted mt-2">Cette action est irréversible.</p>
+  </div>
+  <form method="POST" action="{{ url_for('admin.delete_user', id=user.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="px-6 py-4 border-t border-border flex justify-end gap-3">
+      <button type="button" onclick="document.getElementById('dialogDeleteUser{{ user.id }}').close()"
+              class="border border-border text-fg text-xs px-4 py-2 hover:border-muted transition-colors duration-200 uppercase tracking-wider">
+        Annuler
+      </button>
+      <button type="submit"
+              class="bg-red-600 text-fg text-xs font-title font-bold px-4 py-2 uppercase tracking-widest hover:bg-red-500 transition-colors duration-200">
+        <i class="bi bi-trash mr-1"></i>Supprimer
+      </button>
+    </div>
+  </form>
+</dialog>
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  // ── Thème ───────────────────────────────────────────────────────────
+  const root = document.documentElement;
+  const btnDark = document.getElementById('theme-dark');
+  const btnLight = document.getElementById('theme-light');
+  const ACTIVE = ['bg-accent', 'text-onaccent'];
+  const INACTIVE = ['text-muted'];
+
+  function paintButtons() {
+    const light = root.classList.contains('theme-light');
+    btnLight.classList.remove(...INACTIVE, ...ACTIVE);
+    btnDark.classList.remove(...INACTIVE, ...ACTIVE);
+    (light ? btnLight : btnDark).classList.add(...ACTIVE);
+    (light ? btnDark : btnLight).classList.add(...INACTIVE);
+  }
+
+  function setTheme(light) {
+    root.classList.toggle('theme-light', light);
+    localStorage.setItem('theme', light ? 'light' : 'dark');
+    paintButtons();
+  }
+
+  btnDark.addEventListener('click', () => setTheme(false));
+  btnLight.addEventListener('click', () => setTheme(true));
+  paintButtons();
+
+  // ── Intervalle de rafraîchissement ──────────────────────────────────
+  const sel = document.getElementById('refresh-interval');
+  const stored = localStorage.getItem('refreshInterval') || '60000';
+  if ([...sel.options].some(o => o.value === stored)) sel.value = stored;
+  sel.addEventListener('change', () => localStorage.setItem('refreshInterval', sel.value));
+})();
+</script>
 {% endblock %}

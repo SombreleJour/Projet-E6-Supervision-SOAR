@@ -13,7 +13,7 @@
     tailwind.config = {
       theme: {
         extend: {
-          colors: { bg: '#0A0A0A', surface: '#141414', border: '#262626', accent: '#E8FF47', muted: '#6B6B6B' },
+          colors: { bg: '#0A0A0A', surface: '#141414', border: '#262626', accent: '#E8FF47', accenth: '#D4EB3D', muted: '#6B6B6B', fg: '#F5F5F5', onaccent: '#0A0A0A' },
           fontFamily: { title: ['Syne', 'sans-serif'], body: ['DM Sans', 'sans-serif'] },
           borderRadius: { DEFAULT: '2px', sm: '2px', md: '2px', lg: '2px' },
         }
@@ -22,7 +22,7 @@
   </script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="bg-bg text-[#F5F5F5] font-body min-h-screen flex items-center justify-center p-4">
+<body class="bg-bg text-fg font-body min-h-screen flex items-center justify-center p-4">
 
 <div class="w-full max-w-sm">
 
@@ -45,7 +45,7 @@
       <div class="px-4 py-3 border text-sm
         {% if category == 'danger' %}border-red-700 bg-red-950/50 text-red-300
         {% elif category == 'warning' %}border-yellow-700 bg-yellow-950/50 text-yellow-300
-        {% else %}border-border bg-surface text-[#F5F5F5]{% endif %}">
+        {% else %}border-border bg-surface text-fg{% endif %}">
         {{ message }}
       </div>
       {% endfor %}
@@ -61,25 +61,21 @@
       <div class="mb-5">
         <label for="username" class="block text-[10px] text-muted uppercase tracking-widest mb-2">Identifiant</label>
         <input type="text" id="username" name="username" required autocomplete="username" autofocus
-               class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2.5 text-sm outline-none transition-colors duration-200 focus:border-accent placeholder:text-muted">
+               class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none transition-colors duration-200 focus:border-accent placeholder:text-muted">
       </div>
 
       <div class="mb-6">
         <label for="password" class="block text-[10px] text-muted uppercase tracking-widest mb-2">Mot de passe</label>
         <input type="password" id="password" name="password" required autocomplete="current-password"
-               class="w-full bg-bg border border-border text-[#F5F5F5] px-3 py-2.5 text-sm outline-none transition-colors duration-200 focus:border-accent placeholder:text-muted">
+               class="w-full bg-bg border border-border text-fg px-3 py-2.5 text-sm outline-none transition-colors duration-200 focus:border-accent placeholder:text-muted">
       </div>
 
       <button type="submit"
-              class="w-full bg-accent text-bg font-title text-xs py-3 font-bold uppercase tracking-widest transition-colors duration-200 hover:bg-[#d4eb3d]">
+              class="w-full bg-accent text-onaccent font-title text-xs py-3 font-bold uppercase tracking-widest transition-colors duration-200 hover:bg-accenth">
         Se connecter
       </button>
     </form>
   </div>
-
-  <p class="text-center text-[10px] text-muted mt-6 uppercase tracking-widest">
-    PRTG · Wazuh · SOAR — Deletec
-  </p>
 </div>
 
 </body>

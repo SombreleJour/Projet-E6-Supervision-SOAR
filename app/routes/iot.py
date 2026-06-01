@@ -2,10 +2,11 @@ import os
 import json
 from datetime import datetime, timezone, timedelta
 
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required
 
 from ..models.sensor_reading import Sensor, SensorReading
+from ..utils.decorators import role_required
 
 iot_bp = Blueprint('iot', __name__)
 
@@ -50,3 +51,20 @@ def iot():
         history_json=history_json,
         thresholds=thresholds,
     )
+
+
+@iot_bp.route('/iot/thresholds', methods=['POST'])
+@role_required('admin')
+def update_thresholds():
+    for field in ('TEMP_MAX', 'TEMP_MIN', 'HUM_MAX', 'HUM_MIN'):
+        value = request.form.get(field.lower())
+        if value is not None:
+            try:
+                float(value)
+                os.environ[field] = value
+            except ValueError:
+                flash(f'Valeur invalide pour {field}.', 'danger')
+                return redirect(url_for('iot.iot'))
+
+    flash('Seuils mis à jour pour cette session.', 'success')
+    return redirect(url_for('iot.iot'))

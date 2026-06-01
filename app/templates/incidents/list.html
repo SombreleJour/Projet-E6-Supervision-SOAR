@@ -4,12 +4,12 @@
 {% block content %}
 <div class="flex items-center justify-between mb-8">
   <div>
-    <h1 class="font-title text-2xl text-[#F5F5F5]">Incidents</h1>
+    <h1 class="font-title text-2xl text-fg">Incidents</h1>
     <p class="text-xs text-muted mt-1 uppercase tracking-widest">Gestion des tickets</p>
   </div>
   {% if current_user.has_role('admin') or current_user.has_role('analyst') %}
   <a href="{{ url_for('incidents.new_incident') }}"
-     class="bg-accent text-bg text-xs font-title font-bold px-4 py-2 uppercase tracking-widest hover:bg-[#d4eb3d] transition-colors duration-200">
+     class="bg-accent text-onaccent text-xs font-title font-bold px-4 py-2 uppercase tracking-widest hover:bg-accenth transition-colors duration-200">
     <i class="bi bi-plus-lg mr-1"></i>Nouveau ticket
   </a>
   {% endif %}
@@ -28,7 +28,7 @@
       <div>
         <label class="block text-[10px] text-muted uppercase tracking-wider mb-1.5">{{ label }}</label>
         <select name="{{ name }}"
-                class="bg-bg border border-border text-[#F5F5F5] text-sm px-3 py-2 outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
+                class="bg-bg border border-border text-fg text-sm px-3 py-2 outline-none focus:border-accent transition-colors duration-200 cursor-pointer">
           {% for val, text in options %}
           <option value="{{ val }}" {% if filters[name] == val %}selected{% endif %}>{{ text }}</option>
           {% endfor %}
@@ -36,7 +36,7 @@
       </div>
       {% endfor %}
       <button type="submit"
-              class="border border-border text-[#F5F5F5] text-xs px-4 py-2 hover:border-accent transition-colors duration-200 uppercase tracking-wider">
+              class="border border-border text-fg text-xs px-4 py-2 hover:border-accent transition-colors duration-200 uppercase tracking-wider">
         Filtrer
       </button>
     </div>
@@ -60,10 +60,10 @@
     </thead>
     <tbody>
       {% for incident in incidents %}
-      <tr class="border-b border-border/50 hover:bg-[#1c1c1c] transition-colors duration-150 cursor-pointer"
+      <tr class="border-b border-border/50 hover:bg-hover transition-colors duration-150 cursor-pointer"
           onclick="window.location='{{ url_for('incidents.incident_detail', id=incident.id) }}'">
         <td class="px-4 py-3 text-muted text-xs">{{ incident.id }}</td>
-        <td class="px-4 py-3 text-[#F5F5F5] max-w-xs">
+        <td class="px-4 py-3 text-fg max-w-xs">
           <span class="block truncate">{{ incident.title }}</span>
         </td>
         <td class="px-4 py-3"><span class="badge crit-{{ incident.criticality }}">{{ incident.criticality }}</span></td>

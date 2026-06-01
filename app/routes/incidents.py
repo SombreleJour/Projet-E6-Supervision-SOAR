@@ -9,7 +9,6 @@ from ..models.incident import Incident, IncidentComment
 from ..models.asset import Asset
 from ..models.user import User
 from ..utils.decorators import role_required
-from ..services import soar_service
 
 incidents_bp = Blueprint('incidents', __name__)
 

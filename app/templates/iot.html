@@ -4,7 +4,7 @@
 {% block content %}
 <div class="flex items-center justify-between mb-8">
   <div>
-    <h1 class="font-title text-2xl text-[#F5F5F5]">Sonde environnementale</h1>
+    <h1 class="font-title text-2xl text-fg">Sonde environnementale</h1>
     <p class="text-xs text-muted mt-1 uppercase tracking-widest">DHT22 — Salle serveur</p>
   </div>
   <p class="text-xs text-muted" id="iot-refresh-label">Actualisation toutes les 60s</p>
@@ -36,7 +36,7 @@
       ] %}
       <div class="flex items-center justify-between px-4 py-2.5">
         <span class="text-[10px] text-muted uppercase tracking-wider">{{ label }}</span>
-        <span class="text-sm text-[#F5F5F5]">{{ value }}</span>
+        <span class="text-sm text-fg">{{ value }}</span>
       </div>
       {% endfor %}
       <div class="flex items-center justify-between px-4 py-2.5">
@@ -66,7 +66,7 @@
 
         <div class="mb-4">
           <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Température</p>
-          <p class="font-title text-4xl {% if temp > thresholds.temp_max or temp < thresholds.temp_min %}text-red-400{% else %}text-[#F5F5F5]{% endif %}"
+          <p class="font-title text-4xl {% if temp > thresholds.temp_max or temp < thresholds.temp_min %}text-red-400{% else %}text-fg{% endif %}"
              id="live-temp">{{ temp }}°C</p>
           <p class="text-[10px] text-muted mt-1">{{ thresholds.temp_min }}°C – {{ thresholds.temp_max }}°C</p>
         </div>
@@ -79,7 +79,7 @@
 
         <div class="mb-4">
           <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Humidité</p>
-          <p class="font-title text-4xl {% if hum > thresholds.hum_max or hum < thresholds.hum_min %}text-yellow-400{% else %}text-[#F5F5F5]{% endif %}"
+          <p class="font-title text-4xl {% if hum > thresholds.hum_max or hum < thresholds.hum_min %}text-yellow-400{% else %}text-fg{% endif %}"
              id="live-hum">{{ hum }}%</p>
           <p class="text-[10px] text-muted mt-1">{{ thresholds.hum_min }}% – {{ thresholds.hum_max }}%</p>
         </div>
@@ -100,6 +100,33 @@
         <i class="bi bi-sliders mr-1"></i>Seuils d'alerte
       </p>
     </div>
+    {% if current_user.has_role('admin') %}
+    <!-- Édition directe (admin) -->
+    <form method="POST" action="{{ url_for('iot.update_thresholds') }}" class="p-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        {% for label, name, val in [
+          ('Temp. max (°C)', 'temp_max', thresholds.temp_max),
+          ('Temp. min (°C)', 'temp_min', thresholds.temp_min),
+          ('Hum. max (%)', 'hum_max', thresholds.hum_max),
+          ('Hum. min (%)', 'hum_min', thresholds.hum_min),
+        ] %}
+        <div>
+          <label class="block text-[10px] text-muted uppercase tracking-wider mb-1.5">{{ label }}</label>
+          <input type="number" step="0.1" name="{{ name }}" value="{{ val }}"
+                 class="w-full bg-bg border border-border text-fg px-2.5 py-1.5 text-sm outline-none focus:border-accent transition-colors duration-200">
+        </div>
+        {% endfor %}
+      </div>
+      <button type="submit"
+              class="w-full bg-accent text-onaccent text-xs font-title font-bold py-2 uppercase tracking-widest hover:bg-accenth transition-colors duration-200">
+        <i class="bi bi-check-lg mr-1"></i>Enregistrer
+      </button>
+      <p class="text-[10px] text-muted text-center mt-2">Seuils actifs pour la session en cours.</p>
+    </form>
+
+    {% else %}
+    <!-- Lecture seule -->
     <div class="divide-y divide-border/50">
       {% for label, val, color in [
         ('Temp. max', thresholds.temp_max|string + '°C', 'text-red-400 border-red-700'),
@@ -114,15 +141,9 @@
       {% endfor %}
     </div>
     <div class="px-4 py-3 border-t border-border">
-      {% if current_user.has_role('admin') %}
-      <a href="{{ url_for('admin.settings') }}"
-         class="block text-center border border-border text-[#F5F5F5] text-xs py-2 hover:border-accent transition-colors duration-200 uppercase tracking-wider">
-        <i class="bi bi-gear mr-1"></i>Modifier les seuils
-      </a>
-      {% else %}
       <p class="text-[10px] text-muted text-center">Modification réservée à l'admin.</p>
-      {% endif %}
     </div>
+    {% endif %}
   </div>
 
 </div>

@@ -5,7 +5,7 @@
 <!-- En-tête -->
 <div class="flex items-center justify-between mb-8">
   <div>
-    <h1 class="font-title text-2xl text-[#F5F5F5]">Dashboard</h1>
+    <h1 class="font-title text-2xl text-fg">Dashboard</h1>
     <p class="text-xs text-muted mt-1 uppercase tracking-widest">Vue d'ensemble temps réel</p>
   </div>
   <p class="text-xs text-muted" id="last-refresh">Actualisation toutes les 30s</p>
@@ -19,7 +19,7 @@
       <p class="text-[10px] text-muted uppercase tracking-widest">Incidents ouverts</p>
       <i class="bi bi-folder2-open text-muted text-lg"></i>
     </div>
-    <p class="font-title text-3xl text-[#F5F5F5]" id="kpi-incidents-open">{{ nb_incidents_open }}</p>
+    <p class="font-title text-3xl text-fg" id="kpi-incidents-open">{{ nb_incidents_open }}</p>
     <div class="mt-3 h-px bg-border"></div>
     <p class="text-[10px] text-muted mt-2">En cours de traitement</p>
   </div>
@@ -40,7 +40,7 @@
       <i class="bi bi-bell-fill text-accent text-lg"></i>
     </div>
     {% if latest_alerts %}
-      <p class="font-medium text-sm text-[#F5F5F5] truncate mb-1" id="kpi-last-alert-name">
+      <p class="font-medium text-sm text-fg truncate mb-1" id="kpi-last-alert-name">
         {{ latest_alerts[0].rule_name or '—' }}
       </p>
       <span class="badge sev-{{ latest_alerts[0].severity or 'unknown' }}" id="kpi-last-alert-sev">
@@ -59,7 +59,7 @@
       <i class="bi bi-thermometer-half text-muted text-lg"></i>
     </div>
     {% if latest_readings %}
-      <p class="font-title text-3xl text-[#F5F5F5]">
+      <p class="font-title text-3xl text-fg">
         <span id="kpi-temp">{{ latest_readings.temperature }}°C</span>
         <span class="text-lg text-muted ml-1">/ <span id="kpi-hum">{{ latest_readings.humidity }}%</span></span>
       </p>
@@ -97,11 +97,11 @@
       </thead>
       <tbody>
         {% for alert in latest_alerts %}
-        <tr class="border-b border-border/50 hover:bg-[#1c1c1c] transition-colors duration-150">
+        <tr class="border-b border-border/50 hover:bg-hover transition-colors duration-150">
           <td class="px-4 py-3">
             <span class="text-[10px] uppercase tracking-wider text-muted border border-border px-1.5 py-0.5">{{ alert.source }}</span>
           </td>
-          <td class="px-4 py-3 text-[#F5F5F5] max-w-0 w-full">
+          <td class="px-4 py-3 text-fg max-w-0 w-full">
             <span class="block truncate" title="{{ alert.rule_name }}">{{ alert.rule_name or '—' }}</span>
           </td>
           <td class="px-4 py-3">
@@ -142,9 +142,9 @@
       </thead>
       <tbody>
         {% for inc in recent_incidents %}
-        <tr class="border-b border-border/50 hover:bg-[#1c1c1c] transition-colors duration-150 cursor-pointer"
+        <tr class="border-b border-border/50 hover:bg-hover transition-colors duration-150 cursor-pointer"
             onclick="window.location='{{ url_for('incidents.incident_detail', id=inc.id) }}'">
-          <td class="px-4 py-3 text-[#F5F5F5] max-w-0 w-full">
+          <td class="px-4 py-3 text-fg max-w-0 w-full">
             <span class="block truncate">{{ inc.title }}</span>
           </td>
           <td class="px-4 py-3"><span class="badge crit-{{ inc.criticality }}">{{ inc.criticality }}</span></td>
