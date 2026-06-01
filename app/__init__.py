@@ -1,4 +1,5 @@
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
 from .config import Config
 from .extensions import db, login_manager, csrf
 
@@ -6,6 +7,10 @@ from .extensions import db, login_manager, csrf
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # Derrière le reverse proxy nginx (terminaison TLS) : interpréter les en-têtes
+    # X-Forwarded-* (schéma HTTPS, hôte, IP client réelle) pour CSRF/cookies/redirections.
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     db.init_app(app)
     login_manager.init_app(app)

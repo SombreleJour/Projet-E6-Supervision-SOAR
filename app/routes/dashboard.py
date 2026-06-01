@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, url_for
 from flask_login import login_required
 
 from ..models.incident import Incident, Alert
@@ -6,6 +6,12 @@ from ..models.sensor_reading import SensorReading
 from ..services import prtg_service
 
 dashboard_bp = Blueprint('dashboard', __name__)
+
+
+@dashboard_bp.route('/')
+def index():
+    # Racine du site : renvoie vers le dashboard (lui-même protégé -> login si non connecté).
+    return redirect(url_for('dashboard.dashboard'))
 
 
 @dashboard_bp.route('/dashboard')
