@@ -15,7 +15,8 @@
 
   async function refreshStats() {
     try {
-      const res = await fetch('/api/dashboard/stats');
+      const res = await fetch('/api/dashboard/stats', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      if (res.status === 401) { window.location.replace('/login?reason=timeout'); return; }
       if (!res.ok) return;
       const data = await res.json();
 

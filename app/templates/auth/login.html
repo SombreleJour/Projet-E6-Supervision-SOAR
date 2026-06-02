@@ -78,5 +78,14 @@
   </div>
 </div>
 
+<script>
+  // Marqueur de session navigateur : prouve que cette session navigateur a vu le
+  // login. Effacé à la fermeture du navigateur (sessionStorage) -> base.html détecte
+  // une réouverture et force la déconnexion.
+  (function () {
+    try { sessionStorage.setItem('soc_session_alive', '1'); } catch (e) {}
+  })();
+</script>
+
 </body>
 </html>

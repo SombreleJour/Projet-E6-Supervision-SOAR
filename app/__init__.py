@@ -52,6 +52,35 @@ def create_app(config_class=Config):
         from flask import render_template
         return render_template('errors/404.html'), 404
 
+    # ── Déconnexion automatique après inactivité (autorité serveur) ──────
+    # Le polling en arrière-plan (Dashboard/IoT) NE rafraîchit PAS l'horodatage
+    # d'activité : seules les vraies actions (navigation, keepalive) le font.
+    @app.before_request
+    def _enforce_idle_timeout():
+        import time
+        from flask import request, session, redirect, url_for, jsonify
+        from flask_login import current_user, logout_user
+
+        if request.endpoint == 'static' or not current_user.is_authenticated:
+            return
+
+        now = int(time.time())
+        idle = app.config.get('IDLE_TIMEOUT_SECONDS', 300)
+        last = session.get('last_activity')
+
+        if last is not None and now - last > idle:
+            logout_user()
+            session.clear()
+            wants_json = (request.path.startswith('/api/')
+                          or request.headers.get('X-Requested-With') == 'XMLHttpRequest')
+            if wants_json:
+                return jsonify({'error': 'session_expired'}), 401
+            return redirect(url_for('auth.login', reason='timeout'))
+
+        POLLING_ENDPOINTS = {'api.dashboard_stats', 'api.iot_readings_history'}
+        if request.endpoint not in POLLING_ENDPOINTS:
+            session['last_activity'] = now
+
     # Cache-busting des fichiers statiques : nginx les sert avec un max-age long
     # (7 jours), donc on suffixe l'URL d'un ?v=<mtime> pour forcer le navigateur à
     # retélécharger un asset (CSS/JS) dès qu'il change.
@@ -79,6 +108,7 @@ def create_app(config_class=Config):
         except Exception:
             db.session.rollback()
             ms = 30000
-        return {'refresh_interval_ms': ms}
+        return {'refresh_interval_ms': ms,
+                'idle_timeout_seconds': app.config.get('IDLE_TIMEOUT_SECONDS', 300)}
 
     return app

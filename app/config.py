@@ -12,6 +12,13 @@ class Config:
 
     FLASK_ENV = os.getenv('FLASK_ENV', 'production')
 
+    # ── Sessions / sécurité ────────────────────────────────────────
+    SESSION_PERMANENT = False               # cookie de session : tombe à la fermeture du navigateur
+    SESSION_COOKIE_HTTPONLY = True          # cookie inaccessible au JS
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SECURE = True            # HTTPS uniquement (reverse proxy nginx TLS)
+    IDLE_TIMEOUT_SECONDS = 300              # déconnexion auto après 5 min d'inactivité réelle
+
     PRTG_BASE_URL = os.getenv('PRTG_BASE_URL', 'http://172.16.1.5:443')
     PRTG_USERNAME = os.getenv('PRTG_USERNAME', 'prtgadmin')
     PRTG_PASSWORD = os.getenv('PRTG_PASSWORD', '')
@@ -49,5 +56,6 @@ class TestConfig(Config):
         'poolclass': StaticPool,
     }
     WTF_CSRF_ENABLED = False
+    SESSION_COOKIE_SECURE = False  # test client en HTTP
     SECRET_KEY = 'test-secret'
     SOAR_THRESHOLD = 'high'

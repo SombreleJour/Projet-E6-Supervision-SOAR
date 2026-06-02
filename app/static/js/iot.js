@@ -118,7 +118,8 @@
   async function loadData() {
     const statusEl = document.getElementById('chart-status');
     try {
-      const res = await fetch('/api/iot/readings?hours=24');
+      const res = await fetch('/api/iot/readings?hours=24', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      if (res.status === 401) { window.location.replace('/login?reason=timeout'); return; }
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const readings = await res.json();
       buildChart(readings);
