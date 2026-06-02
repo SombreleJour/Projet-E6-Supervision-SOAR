@@ -84,7 +84,7 @@
           <p class="text-[10px] text-muted mt-1">{{ thresholds.hum_min }}% – {{ thresholds.hum_max }}%</p>
         </div>
 
-        <p class="text-xs text-muted">
+        <p class="text-xs text-muted" id="live-time">
           {{ latest_reading.recorded_at.strftime('%d/%m/%Y à %H:%M:%S') if latest_reading.recorded_at else '—' }}
         </p>
       {% else %}
@@ -165,6 +165,9 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>const IOT_HISTORY_JSON = {{ history_json | safe }};</script>
-<script src="{{ url_for('static', filename='js/iot.js') }}"></script>
+<script>
+  const IOT_HISTORY_JSON = {{ history_json | safe }};
+  const IOT_THRESHOLDS = {{ thresholds | tojson }};
+</script>
+<script src="{{ asset_url('js/iot.js') }}"></script>
 {% endblock %}

@@ -52,4 +52,33 @@ def create_app(config_class=Config):
         from flask import render_template
         return render_template('errors/404.html'), 404
 
+    # Cache-busting des fichiers statiques : nginx les sert avec un max-age long
+    # (7 jours), donc on suffixe l'URL d'un ?v=<mtime> pour forcer le navigateur à
+    # retélécharger un asset (CSS/JS) dès qu'il change.
+    @app.context_processor
+    def inject_asset_url():
+        import os
+        from flask import url_for
+
+        def asset_url(filename):
+            try:
+                version = int(os.path.getmtime(os.path.join(app.static_folder, filename)))
+            except OSError:
+                version = 0
+            return url_for('static', filename=filename, v=version)
+
+        return {'asset_url': asset_url}
+
+    # Intervalle de rafraîchissement global exposé à tous les templates :
+    # base.html (polling JS) et la page Paramètres (option pré-sélectionnée).
+    @app.context_processor
+    def inject_refresh_interval():
+        from .models.setting import Setting
+        try:
+            ms = Setting.get_int('refresh_interval_ms', 30000)
+        except Exception:
+            db.session.rollback()
+            ms = 30000
+        return {'refresh_interval_ms': ms}
+
     return app

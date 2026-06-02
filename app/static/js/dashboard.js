@@ -1,14 +1,17 @@
-/* Polling dashboard stats toutes les 30 secondes */
+/* Polling dashboard stats — intervalle piloté par l'onglet Paramètres */
 (function () {
   const INTERVAL = (window.SUPERVISION && window.SUPERVISION.refreshMs) || 30000;
+  const SECS = Math.round(INTERVAL / 1000);
 
   const el = (id) => document.getElementById(id);
 
-  function formatDatetime(iso) {
-    if (!iso) return '—';
-    const d = new Date(iso);
-    return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  function timeNow() {
+    return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }
+
+  // Libellé initial : reflète la fréquence configurée dans les Paramètres.
+  const labelInit = el('last-refresh');
+  if (labelInit) labelInit.textContent = 'Actualisation toutes les ' + SECS + 's';
 
   async function refreshStats() {
     try {
@@ -39,10 +42,11 @@
       }
 
       const elRefresh = el('last-refresh');
-      if (elRefresh) elRefresh.textContent = 'Dernière actualisation : ' + formatDatetime(new Date().toISOString());
+      if (elRefresh) elRefresh.textContent = 'Actualisation toutes les ' + SECS + 's · maj ' + timeNow();
 
     } catch (_) { /* fail silently */ }
   }
 
+  refreshStats();
   setInterval(refreshStats, INTERVAL);
 })();

@@ -5,8 +5,6 @@ Lance depuis le dossier racine du projet :
 """
 import sys
 import os
-import math
-import random
 from datetime import datetime, timezone, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -172,23 +170,12 @@ def seed_demo_data():
         ))
     db.session.commit()
 
-    # ── Historique IoT : 24 h de mesures (1 point / 30 min) ─────────
-    sensor = Sensor.query.filter_by(is_active=True).first()
-    if sensor and sensor.readings.count() == 0:
-        points = 48
-        for i in range(points):
-            ts = now - timedelta(minutes=30 * (points - i))
-            # Cycle jour/nuit léger + bruit, autour de 23°C / 47%
-            phase = 2 * math.pi * i / points
-            temp = round(23.0 + 2.5 * math.sin(phase) + random.uniform(-0.4, 0.4), 1)
-            hum = round(47.0 + 6.0 * math.cos(phase) + random.uniform(-1.0, 1.0), 1)
-            db.session.add(SensorReading(
-                sensor_id=sensor.id, temperature=temp, humidity=hum,
-                checksum_ok=True, recorded_at=ts,
-            ))
-        db.session.commit()
+    # ── IoT ─────────────────────────────────────────────────────────
+    # Pas de mesures fictives : l'historique IoT est alimenté uniquement
+    # par les vraies remontées du capteur DHT22 via l'API Flask
+    # (POST /api/iot/readings depuis dht22_collector.py).
 
-    print("Données de démo créées : 4 incidents, 8 alertes, 48 mesures IoT")
+    print("Données de démo créées : 4 incidents, 8 alertes (IoT : données réelles uniquement)")
 
 
 if __name__ == '__main__':

@@ -20,9 +20,9 @@
         document.documentElement.classList.add('theme-light');
       }
     })();
-    // Préférences exposées au JS de la page (intervalle de rafraîchissement, etc.)
+    // Intervalle de rafraîchissement global (réglé par l'admin, source serveur unique).
     window.SUPERVISION = {
-      refreshMs: parseInt(localStorage.getItem('refreshInterval'), 10) || null,
+      refreshMs: {{ refresh_interval_ms }},
     };
   </script>
 
@@ -56,7 +56,7 @@
     }
   </script>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ asset_url('css/style.css') }}">
 </head>
 
 <body class="bg-bg text-fg font-body antialiased">

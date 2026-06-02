@@ -1,7 +1,13 @@
-/* Graphique IoT — Chart.js double axe Y + refresh 60s */
+/* Graphique IoT — Chart.js double axe Y + rafraîchissement piloté par les Paramètres */
 (function () {
   const INTERVAL = (window.SUPERVISION && window.SUPERVISION.refreshMs) || 60000;
+  const thresholds = (typeof IOT_THRESHOLDS !== 'undefined') ? IOT_THRESHOLDS : null;
   const canvas = document.getElementById('iotChart');
+
+  // Libellé « Actualisation toutes les Xs » synchronisé avec les Paramètres.
+  const labelEl = document.getElementById('iot-refresh-label');
+  if (labelEl) labelEl.textContent = 'Actualisation toutes les ' + Math.round(INTERVAL / 1000) + 's';
+
   if (!canvas) return;
 
   let chart = null;
@@ -79,6 +85,36 @@
     }
   }
 
+  /* Met à jour le panneau « Dernière mesure » avec la lecture la plus récente. */
+  function updateLive(reading) {
+    if (!reading) return;
+    const tempEl = document.getElementById('live-temp');
+    const humEl  = document.getElementById('live-hum');
+    const timeEl = document.getElementById('live-time');
+
+    if (tempEl && reading.temperature != null) {
+      tempEl.textContent = reading.temperature + '°C';
+      if (thresholds) {
+        const hot = reading.temperature > thresholds.temp_max || reading.temperature < thresholds.temp_min;
+        tempEl.classList.toggle('text-red-400', hot);
+        tempEl.classList.toggle('text-fg', !hot);
+      }
+    }
+    if (humEl && reading.humidity != null) {
+      humEl.textContent = reading.humidity + '%';
+      if (thresholds) {
+        const bad = reading.humidity > thresholds.hum_max || reading.humidity < thresholds.hum_min;
+        humEl.classList.toggle('text-yellow-400', bad);
+        humEl.classList.toggle('text-fg', !bad);
+      }
+    }
+    if (timeEl && reading.recorded_at) {
+      const d = new Date(reading.recorded_at);
+      timeEl.textContent = d.toLocaleDateString('fr-FR') + ' à ' +
+        d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+  }
+
   async function loadData() {
     const statusEl = document.getElementById('chart-status');
     try {
@@ -86,15 +122,17 @@
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const readings = await res.json();
       buildChart(readings);
+      if (readings.length) updateLive(readings[readings.length - 1]);
       if (statusEl) statusEl.textContent = readings.length + ' mesures (24h)';
     } catch (e) {
       if (statusEl) statusEl.textContent = 'Erreur de chargement';
     }
   }
 
-  /* Initialisation avec les données injectées par le template (pas de fetch initial) */
+  /* Initialisation avec les données injectées par le template (pas de fetch initial). */
   if (typeof IOT_HISTORY_JSON !== 'undefined' && IOT_HISTORY_JSON.length > 0) {
     buildChart(IOT_HISTORY_JSON);
+    updateLive(IOT_HISTORY_JSON[IOT_HISTORY_JSON.length - 1]);
     const statusEl = document.getElementById('chart-status');
     if (statusEl) statusEl.textContent = IOT_HISTORY_JSON.length + ' mesures (24h)';
   } else {

@@ -25,6 +25,28 @@ def settings():
     )
 
 
+@admin_bp.route('/settings/refresh', methods=['POST'])
+@role_required('admin')
+def update_refresh_interval():
+    """Règle la cadence globale (web + capteur DHT22), persistée en base."""
+    from ..models.setting import Setting
+
+    ALLOWED = {10000, 15000, 20000, 30000, 40000, 50000, 60000, 90000, 120000}
+    try:
+        ms = int(request.form.get('refresh_interval_ms', ''))
+    except (TypeError, ValueError):
+        flash("Intervalle d'actualisation invalide.", 'danger')
+        return redirect(url_for('admin.settings'))
+
+    if ms not in ALLOWED:
+        flash("Intervalle d'actualisation non autorisé.", 'danger')
+        return redirect(url_for('admin.settings'))
+
+    Setting.set('refresh_interval_ms', ms)
+    flash(f"Cadence réglée sur {ms // 1000} s (pages temps réel + capteur DHT22).", 'success')
+    return redirect(url_for('admin.settings'))
+
+
 # ── Self-service (tout utilisateur connecté) ─────────────────────────────
 
 @admin_bp.route('/account/password', methods=['POST'])

@@ -7,10 +7,12 @@ import adafruit_dht
 import requests
 from datetime import datetime, timezone
 
-API_URL   = "http://172.16.1.15/api/iot/readings"  # à adapter à l'IP de SRV-APP
-GPIO_PIN  = board.D4   # GPIO PIN 4 (BCM)
-INTERVAL  = 60         # secondes
-TOKEN     = "token_secret_rpi5"                     # doit correspondre à IOT_API_TOKEN dans .env
+API_BASE   = "http://172.16.1.15"            # IP de SRV-APP (à adapter)
+API_URL    = f"{API_BASE}/api/iot/readings"
+CONFIG_URL = f"{API_BASE}/api/iot/config"    # cadence d'envoi pilotée par l'app web
+GPIO_PIN   = board.D4                         # GPIO PIN 4 (BCM)
+DEFAULT_INTERVAL = 60                         # secondes — repli si l'API est injoignable
+TOKEN      = "token_secret_rpi5"             # doit correspondre à IOT_API_TOKEN dans .env
 
 logging.basicConfig(
     level=logging.INFO,
@@ -19,6 +21,30 @@ logging.basicConfig(
 )
 
 capteur = adafruit_dht.DHT22(GPIO_PIN, use_pulseio=False)  # use_pulseio=False obligatoire sur RPi5
+
+
+def get_interval(current):
+    """Récupère la cadence d'envoi (en secondes) réglée dans l'app web.
+
+    Renvoie `current` si l'API est injoignable ou la valeur invalide, pour ne
+    jamais bloquer la collecte en cas de coupure réseau.
+    """
+    try:
+        r = requests.get(CONFIG_URL,
+                         headers={"Authorization": f"Bearer {TOKEN}"},
+                         timeout=5)
+        if r.ok:
+            val = int(r.json().get("interval", current))
+            if 1 <= val <= 600:
+                if val != current:
+                    logging.info("Nouvelle cadence d'envoi : %ss", val)
+                return val
+    except Exception as e:
+        logging.warning("Config injoignable, cadence inchangée (%ss) : %s", current, e)
+    return current
+
+
+interval = DEFAULT_INTERVAL
 
 while True:
     try:
@@ -49,6 +75,6 @@ while True:
         capteur.exit()
         raise
 
-    time.sleep(INTERVAL)
-
-
+    # Ajuste la cadence selon le réglage de l'app web, puis attend jusqu'au prochain envoi.
+    interval = get_interval(interval)
+    time.sleep(interval)

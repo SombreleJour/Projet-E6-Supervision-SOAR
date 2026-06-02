@@ -61,6 +61,21 @@ def iot_readings():
     return jsonify({'status': 'ok', 'id': reading.id}), 201
 
 
+@api_bp.route('/iot/config', methods=['GET'])
+def iot_config():
+    """Cadence d'envoi pour le collecteur du RPi5 (intervalle en secondes).
+
+    Authentifié par le même Bearer token que l'envoi des mesures. Permet à
+    dht22_collector.py d'ajuster sa fréquence selon le réglage de l'app web.
+    """
+    if not _verify_bearer():
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    from ..models.setting import Setting
+    ms = Setting.get_int('refresh_interval_ms', 30000)
+    return jsonify({'interval': max(1, ms // 1000), 'interval_ms': ms})
+
+
 @api_bp.route('/iot/readings', methods=['GET'])
 @login_required
 def iot_readings_history():
