@@ -106,7 +106,12 @@ def _status_category(raw):
     return 'other'
 
 
-def get_prtg_overview():
+def get_prtg_overview(cache_ttl=None):
+    from .cache import cached
+    return cached('prtg_overview', cache_ttl, _compute_prtg_overview)
+
+
+def _compute_prtg_overview():
     """Vue d'ensemble PRTG pour le dashboard : appareils, services, états, taux.
 
     Renvoie {'available': False} si PRTG est injoignable, pour un repli propre côté UI.

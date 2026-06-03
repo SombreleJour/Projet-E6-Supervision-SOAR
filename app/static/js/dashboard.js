@@ -48,6 +48,24 @@
     } catch (_) { /* fail silently */ }
   }
 
+  /* Sections d'intégration (PRTG/Wazuh) : on remplace le fragment HTML rendu serveur. */
+  async function pollSection(id, url) {
+    const box = document.getElementById(id);
+    if (!box) return;
+    try {
+      const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, cache: 'no-store' });
+      if (res.status === 401) { window.location.replace('/login?reason=timeout'); return; }
+      if (!res.ok) return;
+      box.innerHTML = await res.text();
+    } catch (_) { /* silencieux */ }
+  }
+
+  function pollIntegrations() {
+    pollSection('prtg-section', '/dashboard/prtg-section');
+    pollSection('wazuh-section', '/dashboard/wazuh-section');
+  }
+
   refreshStats();
   setInterval(refreshStats, INTERVAL);
+  setInterval(pollIntegrations, INTERVAL);
 })();

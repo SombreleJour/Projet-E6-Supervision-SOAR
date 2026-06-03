@@ -88,3 +88,78 @@ def sync_agents_to_assets():
     db.session.commit()
     logger.info(f'Wazuh sync: {created} créés, {updated} mis à jour')
     return {'created': created, 'updated': updated}
+
+
+# ── Vue d'ensemble pour le dashboard ─────────────────────────────────────
+def get_wazuh_overview(cache_ttl=None):
+    from .cache import cached
+    return cached('wazuh_overview', cache_ttl, _compute_wazuh_overview)
+
+
+def _compute_wazuh_overview():
+    """Vue d'ensemble Wazuh : agents (états), couverture, alertes récentes.
+
+    Renvoie {'available': False} si le manager Wazuh est injoignable (token KO),
+    pour un repli propre côté UI tant que l'intégration n'est pas finalisée.
+    """
+    token = get_token()
+    if not token:
+        return {'available': False}
+
+    try:
+        resp = requests.get(
+            f'{_api_url()}/agents',
+            headers={'Authorization': f'Bearer {token}'},
+            params={'limit': 500}, verify=False, timeout=5,
+        )
+        resp.raise_for_status()
+        items = resp.json().get('data', {}).get('affected_items', [])
+    except Exception as e:
+        logger.warning(f'Wazuh overview agents: {e}')
+        return {'available': False}
+
+    agents = []
+    active = disconnected = other = 0
+    for a in items:
+        status = a.get('status', '') or '—'
+        if status == 'active':
+            active += 1
+        elif status == 'disconnected':
+            disconnected += 1
+        else:
+            other += 1
+        os_info = a.get('os') or {}
+        agents.append({
+            'name': a.get('name', '—'),
+            'ip': a.get('ip', '—'),
+            'os': os_info.get('name') or os_info.get('platform') or '—',
+            'status': status,
+        })
+
+    total = len(items)
+    # alertes récentes (best effort : indexeur sur :9200, peut être indisponible)
+    alerts = []
+    for al in get_recent_alerts(8):
+        rule = al.get('rule', {}) or {}
+        agent = al.get('agent', {}) or {}
+        ts = al.get('timestamp', '') or ''
+        alerts.append({
+            'time': ts[11:19] if len(ts) >= 19 else ts,
+            'description': rule.get('description', '—'),
+            'level': rule.get('level', 0),
+            'agent': agent.get('name', '—'),
+        })
+
+    # agents problématiques d'abord
+    agents.sort(key=lambda x: 1 if x['status'] == 'active' else 0)
+
+    return {
+        'available': True,
+        'agents_total': total,
+        'agents_active': active,
+        'agents_disconnected': disconnected,
+        'agents_other': other,
+        'coverage_rate': round(active / total * 100, 1) if total else 0.0,
+        'agents': agents[:50],
+        'alerts': alerts,
+    }

@@ -1,0 +1,137 @@
+<!-- ── Supervision PRTG ──────────────────────────────────────────────────── -->
+<div class="bg-surface border border-border">
+  <div class="flex items-center justify-between px-4 py-3 border-b border-border">
+    <p class="text-[10px] text-muted uppercase tracking-widest font-medium">
+      <i class="bi bi-hdd-network mr-1"></i>Supervision PRTG
+    </p>
+    {% if prtg.available %}
+    <span class="text-[10px] text-muted uppercase tracking-wider">{{ prtg.devices_total }} appareils · {{ prtg.sensors_total }} services</span>
+    {% endif %}
+  </div>
+
+  {% if not prtg.available %}
+  <div class="p-4">
+    <div class="border border-yellow-700 bg-yellow-950/30 px-4 py-3 text-sm text-yellow-300">
+      <i class="bi bi-exclamation-triangle mr-2"></i>PRTG injoignable ou aucune donnée.
+    </div>
+  </div>
+  {% else %}
+
+  <!-- KPI PRTG -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border">
+    <div class="bg-surface p-4">
+      <p class="text-[10px] text-muted uppercase tracking-widest">Appareils supervisés</p>
+      <p class="font-title text-3xl text-fg mt-1">{{ prtg.devices_total }}</p>
+      <p class="text-[10px] text-muted mt-2">{{ prtg.devices_ok }} OK · {{ prtg.devices_down }} NOK · {{ prtg.devices_warning }} warn</p>
+    </div>
+    <div class="bg-surface p-4">
+      <p class="text-[10px] text-muted uppercase tracking-widest">Services supervisés</p>
+      <p class="font-title text-3xl text-fg mt-1">{{ prtg.sensors_total }}</p>
+      <p class="text-[10px] text-muted mt-2">capteurs PRTG</p>
+    </div>
+    <div class="bg-surface p-4">
+      <p class="text-[10px] text-muted uppercase tracking-widest">Taux de disponibilité</p>
+      <p class="font-title text-3xl mt-1 {% if prtg.uptime_rate >= 90 %}text-green-400{% elif prtg.uptime_rate >= 70 %}text-yellow-400{% else %}text-red-400{% endif %}">{{ prtg.uptime_rate }}%</p>
+      <p class="text-[10px] text-muted mt-2">services OK / total</p>
+    </div>
+    <div class="bg-surface p-4">
+      <p class="text-[10px] text-muted uppercase tracking-widest">État des services</p>
+      <div class="flex items-end gap-3 mt-2">
+        <span><span class="font-title text-2xl text-green-400">{{ prtg.sensors_ok }}</span> <span class="text-[10px] text-muted">OK</span></span>
+        <span><span class="font-title text-2xl text-yellow-400">{{ prtg.sensors_warning }}</span> <span class="text-[10px] text-muted">Warn</span></span>
+        <span><span class="font-title text-2xl text-red-400">{{ prtg.sensors_error }}</span> <span class="text-[10px] text-muted">NOK</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barre de disponibilité -->
+  {% if prtg.sensors_total %}
+  <div class="px-4 pt-4">
+    <div class="h-2 w-full bg-border flex overflow-hidden">
+      <div class="bg-green-500"  style="width: {{ (prtg.sensors_ok      / prtg.sensors_total * 100) | round(2) }}%"></div>
+      <div class="bg-yellow-500" style="width: {{ (prtg.sensors_warning / prtg.sensors_total * 100) | round(2) }}%"></div>
+      <div class="bg-red-500"    style="width: {{ (prtg.sensors_error   / prtg.sensors_total * 100) | round(2) }}%"></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Tables : appareils + services en anomalie -->
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 p-4">
+
+    <!-- Appareils supervisés -->
+    <div class="border border-border">
+      <div class="px-4 py-2.5 border-b border-border">
+        <p class="text-[10px] text-muted uppercase tracking-wider font-medium"><i class="bi bi-pc-display mr-1"></i>Appareils supervisés</p>
+      </div>
+      <div class="max-h-72 overflow-y-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border sticky top-0 bg-surface">
+              <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Appareil</th>
+              <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Hôte</th>
+              <th class="px-3 py-2 text-center text-[10px] text-muted uppercase tracking-wider font-medium">Services</th>
+              <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in prtg.devices %}
+            <tr class="border-b border-border/50 hover:bg-hover transition-colors duration-150">
+              <td class="px-3 py-2 text-fg"><span class="block truncate max-w-[150px]" title="{{ d.name }}">{{ d.name }}</span></td>
+              <td class="px-3 py-2 text-muted text-xs"><span class="block truncate max-w-[130px]" title="{{ d.host }}">{{ d.host }}</span></td>
+              <td class="px-3 py-2 text-center text-xs whitespace-nowrap">
+                <span class="text-green-400">{{ d.up }}</span><span class="text-muted">/{{ d.total }}</span>
+                {% if d.down %}<span class="text-red-400 ml-1">↓{{ d.down }}</span>{% endif %}
+                {% if d.warn %}<span class="text-yellow-400 ml-1">!{{ d.warn }}</span>{% endif %}
+              </td>
+              <td class="px-3 py-2">
+                <span class="text-[10px] uppercase tracking-wider border px-1.5 py-0.5
+                  {% if d.category == 'ok' %}text-green-400 border-green-700{% elif d.category == 'error' %}text-red-400 border-red-700{% elif d.category == 'warning' %}text-yellow-400 border-yellow-700{% else %}text-muted border-border{% endif %}">{{ d.status_label }}</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Services en anomalie -->
+    <div class="border border-border">
+      <div class="flex items-center justify-between px-4 py-2.5 border-b border-border">
+        <p class="text-[10px] text-muted uppercase tracking-wider font-medium"><i class="bi bi-exclamation-octagon mr-1"></i>Services en anomalie</p>
+        <span class="text-[10px] text-muted">{{ prtg.sensors_warning + prtg.sensors_error }}</span>
+      </div>
+      <div class="max-h-72 overflow-y-auto">
+        {% if prtg.problem_sensors %}
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border sticky top-0 bg-surface">
+              <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Service</th>
+              <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Statut</th>
+              <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in prtg.problem_sensors %}
+            <tr class="border-b border-border/50 hover:bg-hover transition-colors duration-150">
+              <td class="px-3 py-2 text-fg">
+                <span class="block truncate max-w-[160px]" title="{{ s.name }}">{{ s.name }}</span>
+                <span class="block truncate max-w-[160px] text-[10px] text-muted" title="{{ s.device }}">{{ s.device }}</span>
+              </td>
+              <td class="px-3 py-2 whitespace-nowrap align-top">
+                <span class="text-[10px] uppercase tracking-wider border px-1.5 py-0.5
+                  {% if s.category == 'error' %}text-red-400 border-red-700{% else %}text-yellow-400 border-yellow-700{% endif %}">{{ s.status_label }}</span>
+              </td>
+              <td class="px-3 py-2 text-muted text-xs"><span class="block truncate max-w-[220px]" title="{{ s.message }}">{{ s.message or '—' }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="px-4 py-10 text-center text-muted text-sm"><i class="bi bi-check-circle text-green-400 mr-1"></i>Tous les services supervisés sont OK.</p>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+  {% endif %}
+</div>

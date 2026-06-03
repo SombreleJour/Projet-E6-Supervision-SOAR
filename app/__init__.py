@@ -77,7 +77,8 @@ def create_app(config_class=Config):
                 return jsonify({'error': 'session_expired'}), 401
             return redirect(url_for('auth.login', reason='timeout'))
 
-        POLLING_ENDPOINTS = {'api.dashboard_stats', 'api.iot_readings_history'}
+        POLLING_ENDPOINTS = {'api.dashboard_stats', 'api.iot_readings_history',
+                             'dashboard.prtg_section', 'dashboard.wazuh_section'}
         if request.endpoint not in POLLING_ENDPOINTS:
             session['last_activity'] = now
 

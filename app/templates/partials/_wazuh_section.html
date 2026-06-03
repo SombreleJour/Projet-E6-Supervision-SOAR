@@ -1,0 +1,122 @@
+<!-- ── SIEM Wazuh ────────────────────────────────────────────────────────── -->
+<div class="bg-surface border border-border">
+  <div class="flex items-center justify-between px-4 py-3 border-b border-border">
+    <p class="text-[10px] text-muted uppercase tracking-widest font-medium">
+      <i class="bi bi-shield-shaded mr-1"></i>SIEM Wazuh
+    </p>
+    {% if wazuh.available %}
+    <span class="text-[10px] text-muted uppercase tracking-wider">{{ wazuh.agents_total }} agents · {{ wazuh.alerts|length }} alertes</span>
+    {% endif %}
+  </div>
+
+  {% if not wazuh.available %}
+  <div class="p-4">
+    <div class="border border-yellow-700 bg-yellow-950/30 px-4 py-3 text-sm text-yellow-300">
+      <i class="bi bi-exclamation-triangle mr-2"></i>Wazuh injoignable ou aucune donnée.
+    </div>
+  </div>
+  {% else %}
+
+  <!-- KPI Wazuh -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border">
+    <div class="bg-surface p-4">
+      <p class="text-[10px] text-muted uppercase tracking-widest">Agents supervisés</p>
+      <p class="font-title text-3xl text-fg mt-1">{{ wazuh.agents_total }}</p>
+      <p class="text-[10px] text-muted mt-2">{{ wazuh.agents_active }} actifs · {{ wazuh.agents_disconnected }} déconnectés</p>
+    </div>
+    <div class="bg-surface p-4">
+      <p class="text-[10px] text-muted uppercase tracking-widest">Agents actifs</p>
+      <p class="font-title text-3xl text-green-400 mt-1">{{ wazuh.agents_active }}</p>
+      <p class="text-[10px] text-muted mt-2">connectés au manager</p>
+    </div>
+    <div class="bg-surface p-4">
+      <p class="text-[10px] text-muted uppercase tracking-widest">Taux de couverture</p>
+      <p class="font-title text-3xl mt-1 {% if wazuh.coverage_rate >= 90 %}text-green-400{% elif wazuh.coverage_rate >= 70 %}text-yellow-400{% else %}text-red-400{% endif %}">{{ wazuh.coverage_rate }}%</p>
+      <p class="text-[10px] text-muted mt-2">agents actifs / total</p>
+    </div>
+    <div class="bg-surface p-4">
+      <p class="text-[10px] text-muted uppercase tracking-widest">Alertes récentes</p>
+      <p class="font-title text-3xl text-fg mt-1">{{ wazuh.alerts|length }}</p>
+      <p class="text-[10px] text-muted mt-2">dernières remontées</p>
+    </div>
+  </div>
+
+  <!-- Tables : agents + alertes récentes -->
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 p-4">
+
+    <!-- Agents -->
+    <div class="border border-border">
+      <div class="px-4 py-2.5 border-b border-border">
+        <p class="text-[10px] text-muted uppercase tracking-wider font-medium"><i class="bi bi-hdd-stack mr-1"></i>Agents</p>
+      </div>
+      <div class="max-h-72 overflow-y-auto">
+        {% if wazuh.agents %}
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border sticky top-0 bg-surface">
+              <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Agent</th>
+              <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">IP</th>
+              <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">OS</th>
+              <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in wazuh.agents %}
+            <tr class="border-b border-border/50 hover:bg-hover transition-colors duration-150">
+              <td class="px-3 py-2 text-fg"><span class="block truncate max-w-[140px]" title="{{ a.name }}">{{ a.name }}</span></td>
+              <td class="px-3 py-2 text-muted text-xs">{{ a.ip }}</td>
+              <td class="px-3 py-2 text-muted text-xs"><span class="block truncate max-w-[120px]" title="{{ a.os }}">{{ a.os }}</span></td>
+              <td class="px-3 py-2">
+                <span class="text-[10px] uppercase tracking-wider border px-1.5 py-0.5
+                  {% if a.status == 'active' %}text-green-400 border-green-700{% elif a.status == 'disconnected' %}text-red-400 border-red-700{% else %}text-muted border-border{% endif %}">{{ a.status }}</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="px-4 py-10 text-center text-muted text-sm">Aucun agent enregistré.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Alertes récentes -->
+    <div class="border border-border">
+      <div class="px-4 py-2.5 border-b border-border">
+        <p class="text-[10px] text-muted uppercase tracking-wider font-medium"><i class="bi bi-bell mr-1"></i>Alertes récentes</p>
+      </div>
+      <div class="max-h-72 overflow-y-auto">
+        {% if wazuh.alerts %}
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border sticky top-0 bg-surface">
+              <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Règle</th>
+              <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Niv.</th>
+              <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Heure</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for al in wazuh.alerts %}
+            <tr class="border-b border-border/50 hover:bg-hover transition-colors duration-150">
+              <td class="px-3 py-2 text-fg">
+                <span class="block truncate max-w-[200px]" title="{{ al.description }}">{{ al.description }}</span>
+                <span class="block truncate max-w-[200px] text-[10px] text-muted" title="{{ al.agent }}">{{ al.agent }}</span>
+              </td>
+              <td class="px-3 py-2 whitespace-nowrap">
+                <span class="text-[10px] uppercase tracking-wider border px-1.5 py-0.5
+                  {% if al.level >= 12 %}text-red-400 border-red-700{% elif al.level >= 7 %}text-yellow-400 border-yellow-700{% else %}text-muted border-border{% endif %}">{{ al.level }}</span>
+              </td>
+              <td class="px-3 py-2 text-muted text-xs whitespace-nowrap">{{ al.time or '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="px-4 py-10 text-center text-muted text-sm">Pas d'alertes récentes (indexeur indisponible ?).</p>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+  {% endif %}
+</div>
