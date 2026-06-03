@@ -18,10 +18,12 @@ def settings():
         users = User.query.order_by(User.username).all()
         roles = Role.query.all()
 
+    from ..models.setting import get_thresholds
     return render_template(
         'admin/settings.html',
         users=users,
         roles=roles,
+        thresholds=get_thresholds(),
     )
 
 
@@ -44,6 +46,33 @@ def update_refresh_interval():
 
     Setting.set('refresh_interval_ms', ms)
     flash(f"Cadence réglée sur {ms // 1000} s (pages temps réel + capteur DHT22).", 'success')
+    return redirect(url_for('admin.settings'))
+
+
+@admin_bp.route('/settings/thresholds', methods=['POST'])
+@role_required('admin', 'analyst')
+def update_thresholds():
+    """Met à jour les seuils d'alerte IoT (admin + analyst), persistés en base."""
+    from ..models.setting import Setting, THRESHOLD_DEFAULTS
+
+    values = {}
+    for key in THRESHOLD_DEFAULTS:
+        try:
+            values[key] = float(request.form.get(key, ''))
+        except (TypeError, ValueError):
+            flash(f"Valeur invalide pour « {key} ».", 'danger')
+            return redirect(url_for('admin.settings'))
+
+    if values['temp_min'] >= values['temp_max']:
+        flash('La température min doit être inférieure à la max.', 'danger')
+        return redirect(url_for('admin.settings'))
+    if not (0 <= values['hum_min'] < values['hum_max'] <= 100):
+        flash("L'humidité doit rester entre 0 et 100 % (min < max).", 'danger')
+        return redirect(url_for('admin.settings'))
+
+    for key, val in values.items():
+        Setting.set(f'threshold_{key}', val)
+    flash("Seuils d'alerte IoT mis à jour.", 'success')
     return redirect(url_for('admin.settings'))
 
 

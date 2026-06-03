@@ -76,6 +76,49 @@
   {% endif %}
 </div>
 
+<!-- ── Seuils d'alerte IoT ──────────────────────────────────────────────── -->
+<div class="bg-surface border border-border mb-6">
+  <div class="px-4 py-3 border-b border-border">
+    <p class="text-[10px] text-muted uppercase tracking-wider font-medium">
+      <i class="bi bi-sliders mr-1"></i>Seuils d'alerte IoT
+    </p>
+  </div>
+  {% if current_user.has_role('admin') or current_user.has_role('analyst') %}
+  <form method="POST" action="{{ url_for('admin.update_thresholds') }}" class="p-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <p class="text-xs text-muted mb-4">Déclenchent l'alerte « hors seuils » sur la sonde DHT22 (page IoT).</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+      {% for label, name in [
+        ('Temp. max (°C)', 'temp_max'), ('Temp. min (°C)', 'temp_min'),
+        ('Hum. max (%)', 'hum_max'), ('Hum. min (%)', 'hum_min')
+      ] %}
+      <div>
+        <label class="block text-[10px] text-muted uppercase tracking-wider mb-1.5">{{ label }}</label>
+        <input type="number" step="0.1" name="{{ name }}" value="{{ thresholds[name] }}" required
+               class="w-full bg-bg border border-border text-fg px-2.5 py-2 text-sm outline-none focus:border-accent transition-colors duration-200">
+      </div>
+      {% endfor %}
+    </div>
+    <button type="submit"
+            class="bg-accent text-onaccent text-xs font-title font-bold px-4 py-2 uppercase tracking-widest hover:bg-accenth transition-colors duration-200">
+      <i class="bi bi-check-lg mr-1"></i>Enregistrer les seuils
+    </button>
+  </form>
+  {% else %}
+  <div class="p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+    {% for label, name, unit in [
+      ('Temp. max', 'temp_max', '°C'), ('Temp. min', 'temp_min', '°C'),
+      ('Hum. max', 'hum_max', '%'), ('Hum. min', 'hum_min', '%')
+    ] %}
+    <div>
+      <p class="text-[10px] text-muted uppercase tracking-wider mb-1">{{ label }}</p>
+      <p class="text-sm text-fg">{{ thresholds[name] }}{{ unit }}</p>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
 <!-- ── Mon compte ──────────────────────────────────────────────────────── -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 

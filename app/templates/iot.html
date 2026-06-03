@@ -46,6 +46,9 @@
     </div>
   </div>
 
+  <!-- Espace réservé (futur widget) -->
+  <div class="hidden md:block"></div>
+
   <!-- Dernière mesure -->
   <div class="bg-surface border border-border">
     <div class="px-4 py-3 border-b border-border">
@@ -93,71 +96,24 @@
     </div>
   </div>
 
-  <!-- Seuils -->
-  <div class="bg-surface border border-border">
-    <div class="px-4 py-3 border-b border-border">
-      <p class="text-[10px] text-muted uppercase tracking-wider font-medium">
-        <i class="bi bi-sliders mr-1"></i>Seuils d'alerte
-      </p>
-    </div>
-    {% if current_user.has_role('admin') %}
-    <!-- Édition directe (admin) -->
-    <form method="POST" action="{{ url_for('iot.update_thresholds') }}" class="p-4">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="grid grid-cols-2 gap-3 mb-4">
-        {% for label, name, val in [
-          ('Temp. max (°C)', 'temp_max', thresholds.temp_max),
-          ('Temp. min (°C)', 'temp_min', thresholds.temp_min),
-          ('Hum. max (%)', 'hum_max', thresholds.hum_max),
-          ('Hum. min (%)', 'hum_min', thresholds.hum_min),
-        ] %}
-        <div>
-          <label class="block text-[10px] text-muted uppercase tracking-wider mb-1.5">{{ label }}</label>
-          <input type="number" step="0.1" name="{{ name }}" value="{{ val }}"
-                 class="w-full bg-bg border border-border text-fg px-2.5 py-1.5 text-sm outline-none focus:border-accent transition-colors duration-200">
-        </div>
-        {% endfor %}
-      </div>
-      <button type="submit"
-              class="w-full bg-accent text-onaccent text-xs font-title font-bold py-2 uppercase tracking-widest hover:bg-accenth transition-colors duration-200">
-        <i class="bi bi-check-lg mr-1"></i>Enregistrer
-      </button>
-      <p class="text-[10px] text-muted text-center mt-2">Seuils actifs pour la session en cours.</p>
-    </form>
-
-    {% else %}
-    <!-- Lecture seule -->
-    <div class="divide-y divide-border/50">
-      {% for label, val, color in [
-        ('Temp. max', thresholds.temp_max|string + '°C', 'text-red-400 border-red-700'),
-        ('Temp. min', thresholds.temp_min|string + '°C', 'text-blue-400 border-blue-700'),
-        ('Hum. max', thresholds.hum_max|string + '%', 'text-yellow-400 border-yellow-700'),
-        ('Hum. min', thresholds.hum_min|string + '%', 'text-muted border-border'),
-      ] %}
-      <div class="flex items-center justify-between px-4 py-3">
-        <span class="text-[10px] text-muted uppercase tracking-wider">{{ label }}</span>
-        <span class="text-[10px] uppercase tracking-wider border px-1.5 py-0.5 {{ color }}">{{ val }}</span>
-      </div>
-      {% endfor %}
-    </div>
-    <div class="px-4 py-3 border-t border-border">
-      <p class="text-[10px] text-muted text-center">Modification réservée à l'admin.</p>
-    </div>
-    {% endif %}
-  </div>
 
 </div>
 
-<!-- ── Graphique 24h ────────────────────────────────────────────────────────── -->
+<!-- ── Graphique : historique complet, défilable horizontalement ──────────────── -->
 <div class="bg-surface border border-border">
   <div class="flex items-center justify-between px-4 py-3 border-b border-border">
     <p class="text-[10px] text-muted uppercase tracking-wider font-medium">
-      <i class="bi bi-graph-up mr-1"></i>Historique 24 heures
+      <i class="bi bi-graph-up mr-1"></i>Historique complet
+      <span class="text-muted/70 normal-case tracking-normal ml-1">— défilez vers la gauche pour remonter le temps</span>
     </p>
     <p class="text-xs text-muted" id="chart-status">Chargement…</p>
   </div>
   <div class="p-4">
-    <canvas id="iotChart" style="max-height: 300px;"></canvas>
+    <div id="iot-chart-scroll" style="overflow-x: auto; overflow-y: hidden;">
+      <div id="iot-chart-inner" style="height: 320px;">
+        <canvas id="iotChart"></canvas>
+      </div>
+    </div>
   </div>
 </div>
 

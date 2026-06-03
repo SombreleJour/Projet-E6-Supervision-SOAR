@@ -1,3 +1,5 @@
+import os
+
 from ..extensions import db
 
 
@@ -36,3 +38,27 @@ class Setting(db.Model):
 
     def __repr__(self):
         return f'<Setting {self.key}={self.value}>'
+
+
+# ── Seuils d'alerte IoT ──────────────────────────────────────────────────
+# Stockés en base sous les clés threshold_*, avec repli sur les variables
+# d'environnement / config (mêmes valeurs par défaut qu'auparavant).
+THRESHOLD_DEFAULTS = {
+    'temp_max': ('TEMP_MAX', 35.0),
+    'temp_min': ('TEMP_MIN', 10.0),
+    'hum_max':  ('HUM_MAX', 80.0),
+    'hum_min':  ('HUM_MIN', 20.0),
+}
+
+
+def get_thresholds():
+    """Seuils d'alerte courants (base > env > défaut), en float."""
+    out = {}
+    for key, (env_name, default) in THRESHOLD_DEFAULTS.items():
+        stored = Setting.get(f'threshold_{key}')
+        value = stored if stored is not None else os.getenv(env_name, default)
+        try:
+            out[key] = float(value)
+        except (TypeError, ValueError):
+            out[key] = float(default)
+    return out

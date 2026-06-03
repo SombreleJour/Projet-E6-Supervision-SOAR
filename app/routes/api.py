@@ -79,12 +79,13 @@ def iot_config():
 @api_bp.route('/iot/readings', methods=['GET'])
 @login_required
 def iot_readings_history():
-    hours = int(request.args.get('hours', 24))
-    since = datetime.now(timezone.utc) - timedelta(hours=hours)
-    readings = (SensorReading.query
-                .filter(SensorReading.recorded_at >= since)
-                .order_by(SensorReading.recorded_at.asc())
-                .all())
+    query = SensorReading.query.order_by(SensorReading.recorded_at.asc())
+    # ?all=1 -> historique complet ; sinon fenêtre glissante de `hours` heures.
+    if request.args.get('all') not in ('1', 'true', 'yes'):
+        hours = int(request.args.get('hours', 24))
+        since = datetime.now(timezone.utc) - timedelta(hours=hours)
+        query = query.filter(SensorReading.recorded_at >= since)
+    readings = query.all()
     return jsonify([{
         'id':          r.id,
         'temperature': float(r.temperature) if r.temperature is not None else None,
