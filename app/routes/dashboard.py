@@ -23,7 +23,7 @@ def dashboard():
     latest_alerts = Alert.query.order_by(Alert.created_at.desc()).limit(5).all()
     recent_incidents = Incident.query.order_by(Incident.created_at.desc()).limit(5).all()
     latest_readings = SensorReading.query.order_by(SensorReading.recorded_at.desc()).first()
-    prtg_status = prtg_service.get_sensor_summary()
+    prtg = prtg_service.get_prtg_overview()
 
     return render_template(
         'dashboard.html',
@@ -32,5 +32,5 @@ def dashboard():
         latest_alerts=latest_alerts,
         recent_incidents=recent_incidents,
         latest_readings=latest_readings,
-        prtg_status=prtg_status,
+        prtg=prtg,
     )
