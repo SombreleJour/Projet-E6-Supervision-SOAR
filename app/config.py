@@ -19,7 +19,7 @@ class Config:
     SESSION_COOKIE_SECURE = True            # HTTPS uniquement (reverse proxy nginx TLS)
     IDLE_TIMEOUT_SECONDS = 300              # déconnexion auto après 5 min d'inactivité réelle
 
-    PRTG_BASE_URL = os.getenv('PRTG_BASE_URL', 'http://172.16.1.5:443')
+    PRTG_BASE_URL = os.getenv('PRTG_BASE_URL', 'https://172.16.1.5')
     PRTG_USERNAME = os.getenv('PRTG_USERNAME', 'prtgadmin')
     PRTG_PASSWORD = os.getenv('PRTG_PASSWORD', '')
     PRTG_PASSHASH = os.getenv('PRTG_PASSHASH', '')

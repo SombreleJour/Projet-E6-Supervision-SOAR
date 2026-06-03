@@ -12,7 +12,7 @@ _STATUS_ERROR = {5, 14}
 
 
 def _base_url():
-    return os.getenv('PRTG_BASE_URL', 'http://172.16.1.5:443')
+    return os.getenv('PRTG_BASE_URL', 'https://172.16.1.5')
 
 
 def _auth_params():
