@@ -52,14 +52,19 @@ else:
     print("  ossec.conf mis a jour (location=server, level=10)")
 EOF
 
-# 3. Valider la config
+# 3. Valider la config (wazuh-analysisd -t = test de syntaxe ossec.conf)
 echo "[3/4] Validation de la config..."
-/var/ossec/bin/wazuh-control check-config 2>/dev/null \
-    && echo "      Config valide" \
-    || { echo "      ERREUR config — restauration du backup"; \
-         LATEST_BAK=$(ls -t "${OSSEC_CONF}.bak_"* | head -1); \
-         cp "$LATEST_BAK" "$OSSEC_CONF"; \
-         echo "      Backup restaure: $LATEST_BAK"; exit 1; }
+VALIDATE_OUT=$(/var/ossec/bin/wazuh-analysisd -t 2>&1)
+VALIDATE_RC=$?
+if [ $VALIDATE_RC -eq 0 ]; then
+    echo "      Config valide"
+else
+    echo "      ERREUR config (rc=$VALIDATE_RC) :"
+    echo "$VALIDATE_OUT"
+    LATEST_BAK=$(ls -t "${OSSEC_CONF}.bak_"* 2>/dev/null | head -1)
+    [ -n "$LATEST_BAK" ] && cp "$LATEST_BAK" "$OSSEC_CONF" && echo "      Backup restaure: $LATEST_BAK"
+    exit 1
+fi
 
 # 4. Redemarrer le manager
 echo "[4/4] Redemarrage wazuh-manager..."
