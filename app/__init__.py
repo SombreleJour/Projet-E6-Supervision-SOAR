@@ -1,7 +1,7 @@
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 from .config import Config
-from .extensions import db, login_manager, csrf
+from .extensions import db, login_manager, csrf, limiter
 
 
 def create_app(config_class=Config):
@@ -17,6 +17,7 @@ def create_app(config_class=Config):
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'warning'
     csrf.init_app(app)
+    limiter.init_app(app)
 
     with app.app_context():
         from .models import user, incident, asset, sensor_reading  # noqa: F401
@@ -111,5 +112,36 @@ def create_app(config_class=Config):
             ms = 30000
         return {'refresh_interval_ms': ms,
                 'idle_timeout_seconds': app.config.get('IDLE_TIMEOUT_SECONDS', 300)}
+
+
+    # ── En-têtes HTTP de sécurité ──────────────────────────────────────────
+    # Appliqués à chaque réponse pour renforcer la posture sécurité côté client.
+    @app.after_request
+    def _set_security_headers(response):
+        # Empêche l'embarquement dans une iframe (protection clickjacking)
+        response.headers['X-Frame-Options'] = 'DENY'
+        # Interdit au navigateur de deviner le MIME type (protection MIME sniffing)
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        # Filtre XSS pour les anciens navigateurs
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        # Contrôle les infos envoyées dans l'en-tête Referer vers des domaines tiers
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        # Politique de sources : restreint les origines autorisées pour scripts/styles/polices
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdn.tailwindcss.com; "
+            "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com; "
+            "font-src 'self' cdn.jsdelivr.net fonts.gstatic.com; "
+            "img-src 'self' data:; "
+            "connect-src 'self'; "
+            "frame-ancestors 'none';"
+        )
+        return response
+
+    # ── Trop de requêtes (rate limiting) ───────────────────────────────────
+    @app.errorhandler(429)
+    def too_many_requests(e):
+        from flask import render_template
+        return render_template('errors/429.html'), 429
 
     return app

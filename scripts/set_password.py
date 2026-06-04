@@ -18,7 +18,6 @@ from app.extensions import db
 from app.models.user import User
 from werkzeug.security import generate_password_hash
 
-MIN_LEN = 8
 
 
 def main():
@@ -32,14 +31,21 @@ def main():
             sys.exit(1)
 
         pwd = getpass(f"Nouveau mot de passe pour '{username}' : ")
-        if len(pwd) < MIN_LEN:
-            print(f"Mot de passe trop court ({MIN_LEN} caractères minimum).")
+        errors = []
+        if len(pwd) < 12:
+            errors.append("12 caractères minimum")
+        if not any(c.isupper() for c in pwd):
+            errors.append("au moins une majuscule")
+        if not any(c.isdigit() for c in pwd):
+            errors.append("au moins un chiffre")
+        if errors:
+            print("Mot de passe invalide :", ", ".join(errors) + ".")
             sys.exit(1)
         if getpass("Confirmer : ") != pwd:
             print("Les mots de passe ne correspondent pas.")
             sys.exit(1)
 
-        user.password_hash = generate_password_hash(pwd)
+        user.password_hash = generate_password_hash(pwd, method='scrypt')
         db.session.commit()
         print(f"Mot de passe de '{username}' mis à jour.")
 

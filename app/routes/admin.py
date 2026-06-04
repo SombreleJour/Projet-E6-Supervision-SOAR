@@ -1,3 +1,5 @@
+import re
+
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import current_user
 from werkzeug.security import generate_password_hash
@@ -5,6 +7,18 @@ from werkzeug.security import generate_password_hash
 from ..extensions import db
 from ..models.user import User, Role
 from ..utils.decorators import login_required, role_required
+
+
+
+def _validate_password(password):
+    """Vérifie les règles de complexité. Retourne un message d'erreur ou None."""
+    if len(password) < 12:
+        return "Le mot de passe doit contenir au moins 12 caractères."
+    if not re.search(r'[A-Z]', password):
+        return "Le mot de passe doit contenir au moins une lettre majuscule."
+    if not re.search(r'[0-9]', password):
+        return "Le mot de passe doit contenir au moins un chiffre."
+    return None
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -88,14 +102,15 @@ def change_password():
     if not current_user.check_password(current):
         flash('Mot de passe actuel incorrect.', 'danger')
         return redirect(url_for('admin.settings'))
-    if len(new) < 8:
-        flash('Le nouveau mot de passe doit contenir au moins 8 caractères.', 'danger')
+    err = _validate_password(new)
+    if err:
+        flash(err, 'danger')
         return redirect(url_for('admin.settings'))
     if new != confirm:
         flash('La confirmation ne correspond pas au nouveau mot de passe.', 'danger')
         return redirect(url_for('admin.settings'))
 
-    current_user.password_hash = generate_password_hash(new)
+    current_user.password_hash = generate_password_hash(new, method='scrypt')
     db.session.commit()
     flash('Mot de passe mis à jour.', 'success')
     return redirect(url_for('admin.settings'))
@@ -141,6 +156,11 @@ def create_user():
         flash('Tous les champs sont obligatoires.', 'danger')
         return redirect(url_for('admin.settings'))
 
+    err = _validate_password(password)
+    if err:
+        flash(err, 'danger')
+        return redirect(url_for('admin.settings'))
+
     if User.query.filter_by(username=username).first():
         flash(f"L'utilisateur '{username}' existe déjà.", 'warning')
         return redirect(url_for('admin.settings'))
@@ -153,7 +173,7 @@ def create_user():
     db.session.add(User(
         username=username,
         email=email,
-        password_hash=generate_password_hash(password),
+        password_hash=generate_password_hash(password, method='scrypt'),
         role_id=role.id,
         is_active=True,
     ))
