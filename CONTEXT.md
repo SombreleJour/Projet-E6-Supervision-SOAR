@@ -237,7 +237,7 @@ WAZUH_USER=wazuh-wui
 WAZUH_PASSWORD=MOTDEPASSE_WAZUH
 
 # IoT
-IOT_API_TOKEN=token_secret_rpi5
+IOT_API_TOKEN=<token-généré-avec-openssl-rand-hex-24>
 
 # Seuils alertes IoT
 TEMP_MAX=35.0

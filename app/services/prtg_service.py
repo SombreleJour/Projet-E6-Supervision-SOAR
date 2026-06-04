@@ -168,7 +168,7 @@ def _compute_prtg_overview():
                 'status_raw': s.get('status_raw'),
                 'status_label': _STATUS_LABELS.get(s.get('status_raw'), '—'),
                 'category': cat,
-                'message': (s.get('message_raw') or '').strip(),
+                'message': (s.get('message') or '').strip(),
                 'lastvalue': s.get('lastvalue') or '—',
             })
 

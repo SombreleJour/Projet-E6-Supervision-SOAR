@@ -9,8 +9,8 @@ L'objectif est de fusionner la supervision réseau (**PRTG**) et la sécurité (
 * **Hyperviseur :** VMware Workstation Pro
 * **Réseau/Sécurité :** pfSense, Wazuh
 * **Monitoring :** PRTG Network Monitor
-* **Développement :** Python (Flask/Django), PostgreSQL
-* **IoT :** Raspberry Pi 4 + Capteur DHT22
+* **Développement :** Python (Flask), PostgreSQL
+* **IoT :** Raspberry Pi 5 + Capteur DHT22
 
 ##  Planning
-Le projet est découpé en 6 sprints, avec une livraison finale prévue pour le 31 mars 2026.
+Projet réalisé dans le cadre du BTS CIEL IR, année 2025-2026.

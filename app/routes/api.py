@@ -112,7 +112,10 @@ def iot_readings_history():
     query = SensorReading.query.order_by(SensorReading.recorded_at.asc())
     # ?all=1 -> historique complet ; sinon fenêtre glissante de `hours` heures.
     if request.args.get('all') not in ('1', 'true', 'yes'):
-        hours = int(request.args.get('hours', 24))
+        try:
+            hours = int(request.args.get('hours', 24))
+        except ValueError:
+            return jsonify({'error': 'hours must be an integer'}), 400
         since = datetime.now(timezone.utc) - timedelta(hours=hours)
         query = query.filter(SensorReading.recorded_at >= since)
     readings = query.all()
@@ -136,7 +139,10 @@ def metrics():
 @api_bp.route('/alerts', methods=['GET'])
 @login_required
 def alerts():
-    limit = min(int(request.args.get('limit', 20)), 200)
+    try:
+        limit = min(int(request.args.get('limit', 20)), 200)
+    except ValueError:
+        return jsonify({'error': 'limit must be an integer'}), 400
     severity = request.args.get('severity')
     query = Alert.query.order_by(Alert.created_at.desc())
     if severity:
