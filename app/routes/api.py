@@ -76,6 +76,32 @@ def iot_config():
     return jsonify({'interval': max(1, ms // 1000), 'interval_ms': ms})
 
 
+@api_bp.route('/iot/status', methods=['GET'])
+def iot_status():
+    last = SensorReading.query.order_by(SensorReading.recorded_at.desc()).first()
+    if not last:
+        return jsonify({
+            'rpi_online':  False,
+            'temperature': None,
+            'humidity':    None,
+            'last_seen':   None,
+            'age_seconds': None,
+        })
+
+    recorded_at = last.recorded_at
+    if recorded_at.tzinfo is None:
+        recorded_at = recorded_at.replace(tzinfo=timezone.utc)
+    age = int((datetime.now(timezone.utc) - recorded_at).total_seconds())
+
+    return jsonify({
+        'rpi_online':  age < 300,
+        'temperature': float(last.temperature) if last.temperature is not None else None,
+        'humidity':    float(last.humidity)    if last.humidity    is not None else None,
+        'last_seen':   recorded_at.isoformat(),
+        'age_seconds': age,
+    })
+
+
 @api_bp.route('/iot/readings', methods=['GET'])
 @login_required
 def iot_readings_history():
