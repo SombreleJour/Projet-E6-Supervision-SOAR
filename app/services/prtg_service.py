@@ -131,6 +131,15 @@ def _compute_prtg_overview():
         logger.warning(f'PRTG get_prtg_overview: {e}')
         return {'available': False}
 
+    # Exclure la sonde PRTG elle-même (groupe "Probe Device" ou nom contenant "probe").
+    # Elle génère des erreurs liées à sa propre santé qui parasitent le dashboard.
+    def _is_probe(d):
+        return 'probe' in (d.get('group') or '').lower() or 'probe' in (d.get('device') or '').lower()
+
+    excluded_device_names = {d.get('device', '') for d in devices_raw if _is_probe(d)}
+    devices_raw  = [d for d in devices_raw  if not _is_probe(d)]
+    sensors_raw  = [s for s in sensors_raw  if s.get('device', '') not in excluded_device_names]
+
     devices = []
     dev_ok = dev_warn = dev_down = 0
     for d in devices_raw:

@@ -68,6 +68,7 @@
           <thead>
             <tr class="border-b border-border sticky top-0 bg-surface">
               <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Appareil</th>
+              <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Zone</th>
               <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Hôte</th>
               <th class="px-3 py-2 text-center text-[10px] text-muted uppercase tracking-wider font-medium">Services</th>
               <th class="px-3 py-2 text-left text-[10px] text-muted uppercase tracking-wider font-medium">Statut</th>
@@ -76,8 +77,9 @@
           <tbody>
             {% for d in prtg.devices %}
             <tr class="border-b border-border/50 hover:bg-hover transition-colors duration-150">
-              <td class="px-3 py-2 text-fg"><span class="block truncate max-w-[150px]" title="{{ d.name }}">{{ d.name }}</span></td>
-              <td class="px-3 py-2 text-muted text-xs"><span class="block truncate max-w-[130px]" title="{{ d.host }}">{{ d.host }}</span></td>
+              <td class="px-3 py-2 text-fg"><span class="block truncate max-w-[130px]" title="{{ d.name }}">{{ d.name }}</span></td>
+              <td class="px-3 py-2 text-muted text-xs"><span class="block truncate max-w-[100px]" title="{{ d.group }}">{{ d.group or '—' }}</span></td>
+              <td class="px-3 py-2 text-muted text-xs"><span class="block truncate max-w-[110px]" title="{{ d.host }}">{{ d.host }}</span></td>
               <td class="px-3 py-2 text-center text-xs whitespace-nowrap">
                 <span class="text-green-400">{{ d.up }}</span><span class="text-muted">/{{ d.total }}</span>
                 {% if d.down %}<span class="text-red-400 ml-1">↓{{ d.down }}</span>{% endif %}
