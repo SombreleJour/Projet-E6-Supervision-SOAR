@@ -78,28 +78,32 @@ def iot_config():
 
 @api_bp.route('/iot/status', methods=['GET'])
 def iot_status():
+    """Statut RPi5 au format PRTG HTTP Data Advanced — sans authentification."""
     last = SensorReading.query.order_by(SensorReading.recorded_at.desc()).first()
     if not last:
-        return jsonify({
-            'rpi_online':  False,
-            'temperature': None,
-            'humidity':    None,
-            'last_seen':   None,
-            'age_seconds': None,
-        })
+        return jsonify({'prtg': {'result': [
+            {'channel': 'Temperature', 'value': 0, 'unit': 'Custom', 'customunit': '°C', 'float': 1},
+            {'channel': 'Humidity',    'value': 0, 'unit': 'Percent', 'float': 1},
+            {'channel': 'RPi Online',  'value': 0, 'unit': 'Custom', 'customunit': '', 'float': 0,
+             'limitmaxerror': 0, 'limitmode': 1},
+            {'channel': 'Age',         'value': 0, 'unit': 'TimeSeconds', 'float': 0},
+        ]}})
 
     recorded_at = last.recorded_at
     if recorded_at.tzinfo is None:
         recorded_at = recorded_at.replace(tzinfo=timezone.utc)
     age = int((datetime.now(timezone.utc) - recorded_at).total_seconds())
+    online = 1 if age < 300 else 0
 
-    return jsonify({
-        'rpi_online':  age < 300,
-        'temperature': float(last.temperature) if last.temperature is not None else None,
-        'humidity':    float(last.humidity)    if last.humidity    is not None else None,
-        'last_seen':   recorded_at.isoformat(),
-        'age_seconds': age,
-    })
+    return jsonify({'prtg': {'result': [
+        {'channel': 'Temperature', 'value': round(float(last.temperature), 1) if last.temperature is not None else 0,
+         'unit': 'Custom', 'customunit': '°C', 'float': 1},
+        {'channel': 'Humidity',    'value': round(float(last.humidity), 1) if last.humidity is not None else 0,
+         'unit': 'Percent', 'float': 1},
+        {'channel': 'RPi Online',  'value': online, 'unit': 'Custom', 'customunit': '', 'float': 0,
+         'limitminerror': 1, 'limitmode': 1},
+        {'channel': 'Age',         'value': age, 'unit': 'TimeSeconds', 'float': 0},
+    ]}})
 
 
 @api_bp.route('/iot/readings', methods=['GET'])
