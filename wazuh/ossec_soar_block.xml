@@ -1,0 +1,17 @@
+<!-- Bloc a ajouter dans /var/ossec/etc/ossec.conf sur le manager Wazuh -->
+<!-- Section <ossec_config> -> remplacer le bloc active-response existant -->
+
+<!-- Commande soar-notify : envoie l'alerte au dashboard SOAR -->
+<command>
+  <name>soar-notify</name>
+  <executable>soar-notify.sh</executable>
+  <timeout_allowed>no</timeout_allowed>
+</command>
+
+<!-- Active-response : se declenche sur le SERVEUR (manager) des level 10+ -->
+<!-- Regles ciblees : 5551/5763 SSH brute-force, 60122 RDP Windows        -->
+<active-response>
+  <command>soar-notify</command>
+  <location>server</location>
+  <level>10</level>
+</active-response>
