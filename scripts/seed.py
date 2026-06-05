@@ -67,7 +67,7 @@ def seed():
         lab_assets = [
             ('SRV-AD-PRTG',  '172.16.1.5',  'server',      'wazuh'),
             ('SRV-WAZUH',    '172.16.1.10', 'server',      'wazuh'),
-            ('PC-TEST-WIN',  '172.16.5.5',  'workstation', 'manual'),
+            ('Win10-Test',   '172.16.2.5',  'workstation', 'wazuh'),
             ('PC-TEST-LIN',  '172.16.5.10', 'workstation', 'manual'),
         ]
         assets_created = 0
