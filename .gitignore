@@ -25,3 +25,6 @@ dist/
 .mypy_cache/
 .ruff_cache/
 .cache/
+
+# Paquets binaires (installeurs agents) — ne pas versionner
+*.deb
