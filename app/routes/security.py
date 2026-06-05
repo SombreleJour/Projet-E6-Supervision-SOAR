@@ -8,6 +8,7 @@ security_bp = Blueprint('security', __name__)
 
 @security_bp.route('/security')
 @role_required('admin', 'analyst')
+# Page Securite : historique des alertes (base) + dernieres alertes en direct de Wazuh
 def security():
     page = int(request.args.get('page', 1))
     per_page = min(int(request.args.get('per_page', 20)), 100)
@@ -23,6 +24,7 @@ def security():
 
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
 
+    # Alertes live Wazuh ; si l'API ne repond pas on garde une liste vide (pas de plantage)
     live_alerts = []
     try:
         live_alerts = wazuh_service.get_recent_alerts(n=10)

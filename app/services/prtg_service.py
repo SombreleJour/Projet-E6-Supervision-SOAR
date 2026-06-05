@@ -6,15 +6,18 @@ from ..utils.logger import logger
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+# Codes d'etat PRTG : 3 = OK, 4 = avertissement, 5 et 14 = erreur
 _STATUS_OK = {3}
 _STATUS_WARNING = {4}
 _STATUS_ERROR = {5, 14}
 
 
+# URL de base du serveur PRTG (lue dans la config / variables d'environnement)
 def _base_url():
     return os.getenv('PRTG_BASE_URL', 'https://172.16.1.5')
 
 
+# Authentification PRTG : on prefere le passhash, sinon le mot de passe
 def _auth_params():
     params = {'username': os.getenv('PRTG_USERNAME', 'prtgadmin'), 'output': 'json'}
     passhash = os.getenv('PRTG_PASSHASH', '')
@@ -25,6 +28,7 @@ def _auth_params():
     return params
 
 
+# Fonction interne : envoie une requete a l'API PRTG et renvoie le JSON
 def _get(endpoint, extra_params=None):
     params = _auth_params()
     if extra_params:
@@ -34,6 +38,7 @@ def _get(endpoint, extra_params=None):
     return resp.json()
 
 
+# Comptage rapide des sondes par etat (total / ok / warning / erreur)
 def get_sensor_summary():
     try:
         sensors = _get('/api/table.json', {'content': 'sensors', 'columns': 'objid,status_raw'}).get('sensors', [])
@@ -48,6 +53,7 @@ def get_sensor_summary():
         return {}
 
 
+# Liste detaillee de toutes les sondes
 def get_sensors():
     try:
         return _get('/api/table.json', {
@@ -59,6 +65,7 @@ def get_sensors():
         return []
 
 
+# Details d'une sonde precise (recherchee par son id)
 def get_sensor(sensor_id):
     try:
         sensors = _get('/api/table.json', {
@@ -72,6 +79,7 @@ def get_sensor(sensor_id):
         return {}
 
 
+# Renvoie True si l'appareil (par IP) est UP — sert au SOAR pour verifier qu'un hote est bien isole
 def get_device_status(ip):
     try:
         devices = _get('/api/table.json', {
@@ -94,6 +102,7 @@ _STATUS_LABELS = {
 }
 
 
+# Classe un code d'etat PRTG dans une categorie simple : ok / warning / error / paused / other
 def _status_category(raw):
     if raw in _STATUS_OK:
         return 'ok'
@@ -106,6 +115,7 @@ def _status_category(raw):
     return 'other'
 
 
+# Vue d'ensemble PRTG pour le dashboard (passe par le cache pour ne pas surcharger le serveur)
 def get_prtg_overview(cache_ttl=None):
     from .cache import cached
     return cached('prtg_overview', cache_ttl, _compute_prtg_overview)

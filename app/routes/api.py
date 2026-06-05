@@ -12,11 +12,13 @@ from ..services import prtg_service
 api_bp = Blueprint('api', __name__)
 
 
+# Verifie le jeton Bearer (meme token que le capteur) pour proteger les endpoints d'ingestion
 def _verify_bearer():
     auth = request.headers.get('Authorization', '')
     return auth.startswith('Bearer ') and auth[7:] == os.getenv('IOT_API_TOKEN', '')
 
 
+# POST : reception d'une mesure envoyee par le capteur DHT22 du Raspberry Pi
 @api_bp.route('/iot/readings', methods=['POST'])
 def iot_readings():
     if not _verify_bearer():
@@ -38,6 +40,7 @@ def iot_readings():
     except (TypeError, ValueError):
         return jsonify({'error': 'Invalid numeric values'}), 422
 
+    # On refuse les valeurs aberrantes (capteur en panne ou parasites)
     if not (-10 <= temperature <= 60):
         return jsonify({'error': 'Temperature out of range [-10, 60]'}), 422
     if not (0 <= humidity <= 100):
@@ -108,6 +111,7 @@ def iot_status():
 
 @api_bp.route('/iot/readings', methods=['GET'])
 @login_required
+# GET : historique des mesures pour les graphiques (reserve aux utilisateurs connectes)
 def iot_readings_history():
     query = SensorReading.query.order_by(SensorReading.recorded_at.asc())
     # ?all=1 -> historique complet ; sinon fenêtre glissante de `hours` heures.
@@ -129,6 +133,7 @@ def iot_readings_history():
 
 @api_bp.route('/metrics', methods=['GET'])
 @login_required
+# Renvoie l'etat des sondes PRTG au format JSON
 def metrics():
     return jsonify({
         'sensors':   prtg_service.get_sensors(),
@@ -138,6 +143,7 @@ def metrics():
 
 @api_bp.route('/alerts', methods=['GET'])
 @login_required
+# Liste des alertes en JSON, filtrable par gravite
 def alerts():
     try:
         limit = min(int(request.args.get('limit', 20)), 200)
@@ -161,6 +167,7 @@ def alerts():
 
 @api_bp.route('/dashboard/stats', methods=['GET'])
 @login_required
+# Chiffres cles du tableau de bord (rafraichis en direct par le JS)
 def dashboard_stats():
     incidents_open     = Incident.query.filter_by(status='open').count()
     incidents_critical = Incident.query.filter_by(criticality='critical').count()

@@ -12,6 +12,7 @@ from ..utils.decorators import role_required
 
 incidents_bp = Blueprint('incidents', __name__)
 
+# Valeurs autorisees (liste blanche) pour valider les champs d'un incident
 VALID_STATUSES = {'open', 'in_progress', 'closed'}
 VALID_CRITICALITIES = {'low', 'medium', 'high', 'critical'}
 VALID_CATEGORIES = {'security', 'performance', 'network'}
@@ -20,6 +21,7 @@ VALID_SOURCES = {'wazuh', 'prtg', 'manual'}
 
 @incidents_bp.route('/')
 @role_required('admin', 'analyst')
+# Page liste des incidents : filtres (statut/criticite/categorie/source) + pagination
 def list_incidents():
     status = request.args.get('status')
     criticality = request.args.get('criticality')
@@ -51,6 +53,7 @@ def list_incidents():
 
 @incidents_bp.route('/new', methods=['GET', 'POST'])
 @role_required('admin', 'analyst')
+# Creation manuelle d'un incident depuis le formulaire web
 def new_incident():
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
@@ -79,6 +82,7 @@ def new_incident():
 
 @incidents_bp.route('/<int:id>')
 @role_required('admin', 'analyst')
+# Page detail d'un incident (+ liste des utilisateurs pour l'assignation)
 def incident_detail(id):
     incident = db.get_or_404(Incident, id)
     users = User.query.filter_by(is_active=True).all()
@@ -87,6 +91,7 @@ def incident_detail(id):
 
 @incidents_bp.route('/<int:id>/comment', methods=['POST'])
 @login_required
+# Ajoute un commentaire d'analyste sur l'incident
 def add_comment(id):
     incident = db.get_or_404(Incident, id)
     comment_text = request.form.get('comment', '').strip()
@@ -107,6 +112,7 @@ def add_comment(id):
 
 @incidents_bp.route('/<int:id>/assign', methods=['POST'])
 @role_required('admin', 'analyst')
+# Assigne (ou retire l'assignation de) l'incident a un utilisateur
 def assign_incident(id):
     incident = db.get_or_404(Incident, id)
     user_id = request.form.get('user_id')
@@ -131,6 +137,7 @@ def assign_incident(id):
 
 @incidents_bp.route('/<int:id>/status', methods=['POST'])
 @role_required('admin', 'analyst')
+# Change le statut de l'incident (open / in_progress / closed)
 def change_status(id):
     incident = db.get_or_404(Incident, id)
     new_status = request.form.get('status')
@@ -148,6 +155,7 @@ def change_status(id):
 
 @incidents_bp.route('/<int:id>/soar', methods=['POST'])
 @role_required('admin', 'analyst')
+# Lance manuellement une action SOAR (isolation hote ou blocage IP) sur la machine liee
 def trigger_soar(id):
     incident = db.get_or_404(Incident, id)
     action = request.form.get('action', 'isolate')

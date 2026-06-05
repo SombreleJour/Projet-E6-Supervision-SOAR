@@ -11,7 +11,6 @@
 #   5. Crée le rôle + la base PostgreSQL et les synchronise avec le .env
 #   6. Crée le venv, installe les dépendances, initialise la base (seed)
 #   7. Installe + active le service systemd (gunicorn, démarrage auto)
-#   8. Installe Claude Code (installeur natif Anthropic) pour l'utilisateur courant
 #
 # Usage :
 #   sudo bash scripts/deploy.sh
@@ -30,8 +29,6 @@ REPO_URL="https://github.com/SombreleJour/Projet-E6-Supervision-SOAR.git"
 # Répertoire source = racine du dépôt (parent de scripts/)
 SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# Utilisateur humain pour qui installer Claude Code (celui qui a lancé sudo)
-CLAUDE_USER="${SUDO_USER:-$(id -un)}"
 
 # ─────────────────────────── Helpers ───────────────────────────────
 log()  { printf '\033[1;36m[deploy]\033[0m %s\n' "$*"; }
@@ -51,7 +48,6 @@ require_root
 log "Source du dépôt : $SRC_DIR"
 log "Cible           : $APP_DIR"
 log "Service         : ${SERVICE_NAME}.service (port ${SERVICE_PORT})"
-log "Claude Code pour: $CLAUDE_USER"
 
 # ─────────────────────── 1. Paquets système ────────────────────────
 log "Installation des paquets système…"
@@ -174,22 +170,6 @@ if command -v ufw >/dev/null 2>&1 && ufw status | grep -q "Status: active"; then
   ok "Port ${SERVICE_PORT} autorisé dans ufw."
 fi
 
-# ─────────────────── 8. Installation de Claude Code ────────────────
-log "Installation de Claude Code pour l'utilisateur '$CLAUDE_USER'…"
-if [[ "$CLAUDE_USER" == "root" ]]; then
-  if curl -fsSL https://claude.ai/install.sh | bash; then
-    ok "Claude Code installé pour root (~/.local/bin/claude)."
-  else
-    warn "Échec de l'installation de Claude Code (réseau Internet requis)."
-  fi
-else
-  if sudo -u "$CLAUDE_USER" --login bash -c 'curl -fsSL https://claude.ai/install.sh | bash'; then
-    ok "Claude Code installé pour '$CLAUDE_USER' (~/.local/bin/claude)."
-  else
-    warn "Échec de l'installation de Claude Code (réseau Internet requis)."
-  fi
-fi
-
 # ─────────────────────────── Résumé ────────────────────────────────
 IP_ADDR="$(hostname -I 2>/dev/null | awk '{print $1}')"
 cat <<EOF
@@ -208,10 +188,5 @@ cat <<EOF
   • Éditer /opt/supervision-app/.env pour les accès PRTG/Wazuh/pfSense et
     le IOT_API_TOKEN (doit correspondre au TOKEN dans dht22_collector.py),
     puis : sudo systemctl restart ${SERVICE_NAME}
-  • Claude Code : lancer 'claude' puis suivre le lien de connexion.
-    (VM headless : ouvrez l'URL affichée sur un PC avec navigateur,
-     autorisez, puis collez le code dans le terminal.)
-    Si 'claude' est introuvable : rouvrez la session ou
-    export PATH="\$HOME/.local/bin:\$PATH"
 ──────────────────────────────────────────────────────────────────
 EOF

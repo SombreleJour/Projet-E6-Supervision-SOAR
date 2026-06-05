@@ -10,14 +10,17 @@ from ..utils.logger import logger
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
+# Adresse de l'API REST Wazuh (port 55000)
 def _api_url():
     return os.getenv("WAZUH_API_URL", "https://172.16.1.10:55000")
 
 
+# Identifiants de connexion a l'API Wazuh
 def _credentials():
     return os.getenv("WAZUH_USER", "wazuh-wui"), os.getenv("WAZUH_PASSWORD", "")
 
 
+# Recupere un jeton JWT aupres de l'API Wazuh (obligatoire avant tout autre appel)
 def get_token():
     try:
         user, password = _credentials()
@@ -32,6 +35,7 @@ def get_token():
         return None
 
 
+# Liste des agents Wazuh actuellement actifs
 def get_agents():
     try:
         token = get_token()
@@ -120,6 +124,7 @@ def get_recent_alerts(n=20):
     return events[:n]
 
 
+# Recopie les agents Wazuh dans la table des actifs (assets) de l'application
 def sync_agents_to_assets():
     created = updated = 0
     for agent in get_agents():
@@ -142,11 +147,13 @@ def sync_agents_to_assets():
 
 
 # ── Vue d ensemble pour le dashboard ─────────────────────────────────────
+# Vue d'ensemble Wazuh pour le dashboard (avec cache)
 def get_wazuh_overview(cache_ttl=None):
     from .cache import cached
     return cached("wazuh_overview", cache_ttl, _compute_wazuh_overview)
 
 
+# Calcule les stats des agents (actifs / deconnectes) + les dernieres alertes
 def _compute_wazuh_overview():
     token = get_token()
     if not token:
